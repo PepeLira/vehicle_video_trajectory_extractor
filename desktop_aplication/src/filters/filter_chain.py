@@ -15,4 +15,6 @@ class FilterChain:
 class Filter(ABC):
     @abstractmethod
     def apply(self, data):
+        # data: a list of lists or an array of arrays, 
+        # were each inner list/array has the same unit and length 
         pass
