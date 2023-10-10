@@ -33,7 +33,7 @@ La raíz también debe contar con una carpeta con la implementación de un softw
 
 
 ```
-📂 project/
+📂 vehicle_video_trajectory_extractor/
 ├── 📄 README.md
 ├── LICENSE
 ├── 📂 research/
@@ -57,12 +57,21 @@ La raíz también debe contar con una carpeta con la implementación de un softw
 └── 📂 desktop_aplication/
     ├── 📄 README.md
     ├── 📂 src/  # Código fuente
-    │   ├── 📄 main.py
     │   ├── 📂 alignment/
-    │   │   └── [módulos y scripts de alineamiento]
+    │   │   └── [archivos modelado de alineamiento]
+    │   ├── 📂 controllers/
+    │   │   └── [controllers para patron MVC]
     │   │
-    │   └── 📂 trajectory_extraction/
-    │       └── [módulos y scripts de detección y extracción de trayectorias]
+    │   ├── 📂 filters/
+    │   │   └── [archivos modelado de filtros]
+    │   │
+    │   ├── 📂 trajectory_extraction/
+    │   │   └── [archivos modelado de extractor de trayectorias]
+    │   │
+    │   ├── 📂 views/
+    │   │   └── [views para patron MVC]
+    │   │
+    │   └── [main, requirements.txt y modelo VideoProcessor.py ]
     │
     ├── 📂 ui/  # Archivos de interfaz de usuario
     │   └── [archivos de diseño de interfaz, e.g., .ui, .qss]
