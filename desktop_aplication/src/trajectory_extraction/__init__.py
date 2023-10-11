@@ -1,4 +1,4 @@
-from supervision_detector import SupervisionDetector
+from yolov8_detector import YOLOv8Detector
 
 # Import here all the detectors implemented
-__all__ = ["SupervisionDetector"]
+__all__ = ["YOLOv8Detector"]
