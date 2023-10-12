@@ -1,4 +1,4 @@
-from filter_chain import Filter
+from .filter_chain import Filter
 
 class MovingAverageFilter(Filter):
     def __init__(self, window_size=3):
@@ -23,3 +23,6 @@ class MovingAverageFilter(Filter):
             moving_averages.append(average)
         
         return moving_averages
+    
+    def __str__(self):
+        return f"Moving Average Filter (window_size={self.window_size})"

@@ -1,4 +1,4 @@
-from orb_aligner import OrbAligner
+from .orb_aligner import OrbAligner
 # from sift_aligner import SiftAligner
 
 # Import here all the aligners implemented 

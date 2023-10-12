@@ -1,4 +1,4 @@
-from detector_strategy import DetectorStrategy
+from .detector_strategy import DetectorStrategy
 import cv2
 import pdb
 from ultralytics import YOLO
@@ -24,6 +24,9 @@ class YOLOv8Detector(DetectorStrategy):
                     detections.append([x1, y1, x2, y2, result.names[class_id], track_id, score])
         
         return video, detections
+    
+    def __str__(self):
+        return "YOLOv8 Detector"
 
 if __name__ == "__main__":
     detector = YOLOv8Detector()
