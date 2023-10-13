@@ -3,13 +3,8 @@ from .filter_chain import Filter
 class MovingAverageFilter(Filter):
     def __init__(self, window_size=3):
         self.window_size = window_size
-
-    def apply(self, data):
-        for i in range(len(data)):
-            data[i] = self.calculate(data[i])
-        return data
     
-    def calculate(self, data):
+    def apply(self, data):
         if self.window_size <= 0:
             raise ValueError("Window size must be a positive integer")
         

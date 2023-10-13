@@ -8,6 +8,8 @@ class FilterChain:
         self.filters.append(filter)
     
     def apply_filters(self, data):
+        if len(self.filters) == 0:
+            return data
         for filter in self.filters:
             data = filter.apply(data)
         return data
