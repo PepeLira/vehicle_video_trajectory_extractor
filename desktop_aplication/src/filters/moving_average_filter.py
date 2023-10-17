@@ -1,15 +1,10 @@
-from filter_chain import Filter
+from .filter_chain import Filter
 
 class MovingAverageFilter(Filter):
     def __init__(self, window_size=3):
         self.window_size = window_size
-
-    def apply(self, data):
-        for i in range(len(data)):
-            data[i] = self.calculate(data[i])
-        return data
     
-    def calculate(self, data):
+    def apply(self, data):
         if self.window_size <= 0:
             raise ValueError("Window size must be a positive integer")
         
@@ -23,3 +18,6 @@ class MovingAverageFilter(Filter):
             moving_averages.append(average)
         
         return moving_averages
+    
+    def __str__(self):
+        return f"Moving Average Filter (window_size={self.window_size})"
