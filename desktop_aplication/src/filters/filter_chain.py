@@ -1,10 +1,17 @@
 from abc import ABC, abstractmethod
 
+class Filter(ABC):
+    @abstractmethod
+    def apply(self, data):
+        # data: lista de listas o arrays, 
+        # donde cada lista/array interna tiene la misma longitud y unidad
+        pass
+
 class FilterChain:
     def __init__(self):
-        self.filters = []
+        self.filters: list[Filter] = []
     
-    def add_filter(self, filter):
+    def add_filter(self, filter: Filter):
         self.filters.append(filter)
     
     def apply_filters(self, data):
@@ -13,10 +20,3 @@ class FilterChain:
         for filter in self.filters:
             data = filter.apply(data)
         return data
-
-class Filter(ABC):
-    @abstractmethod
-    def apply(self, data):
-        # data: a list of lists or an array of arrays, 
-        # were each inner list/array has the same unit and length 
-        pass
