@@ -1,37 +1,48 @@
-import csv
+from models.input_video import InputVideo
+from filters import FilterChain
+import numpy as np
 
 class VideoProcessor:
-    def __init__(self, aligner_filter_chain, trajectory_filter_chain):
+    def __init__(self, aligner_filter_chain: FilterChain, trajectory_filter_chain: FilterChain):
         self.aligner_filter_chain = aligner_filter_chain
         self.trajectory_filter_chain = trajectory_filter_chain
         self.aligner = None
         self.detector = None
     
     def process_video(self, video_path):
-        # Implements the flow processing the video
+        # Implements the video processing pipeline
         if self.aligner is None and self.detector is None:
             raise ValueError("Aligner and detector must be set before processing video")
         
+        input_video = InputVideo(video_path)
+        
+        filtered_affine_transformations = None
+        filtered_trajectories = None
+        
         if self.aligner != None:
-            # TODO Apply aligner
-            # TODO Apply filters to the aligner
-            pass
+            affine_transformations = self.aligner.set_affine_transformations(input_video)
+            filtered_affine_transformations = self.filter_affine_transformations(affine_transformations)
 
         if self.detector != None:
-            detections = self.detector.detect(video_path)
+            detections = self.detector.detect(input_video.video_path)
             trajectories = self.detector.get_trajectories(detections)
             
             # Filter trajectories
-            trajectories = self.filter_trajectories(trajectories)
+            filtered_trajectories = self.filter_trajectories(trajectories)
 
-            # Record results
-            self.record_csv_results(trajectories)
+        return filtered_trajectories, filtered_affine_transformations
 
     def filter_trajectories(self, trajectories):
         for trajectory in trajectories.keys():
             trajectories[trajectory]["x_trajectory"] = self.trajectory_filter_chain.apply_filters(trajectories[trajectory]["x_trajectory"])
             trajectories[trajectory]["y_trajectory"] = self.trajectory_filter_chain.apply_filters(trajectories[trajectory]["y_trajectory"])
         return trajectories
+    
+    def filter_affine_transformations(self, affine_transformations):
+        affine_transformations = np.array(affine_transformations)
+        for i in range(len(affine_transformations[0])):
+            affine_transformations[:, i] = np.array(self.aligner_filter_chain.apply_filters(list(affine_transformations[:, i])))
+        return affine_transformations.tolist()
 
     def set_aligner(self, aligner):
         self.aligner = aligner
@@ -44,34 +55,4 @@ class VideoProcessor:
     
     def add_trajectory_extractor_filter(self, trajectory_extractor_filter):
         self.trajectory_filter_chain.add_filter(trajectory_extractor_filter)
-
-    def record_csv_results(self, trajectories, output_path="trajectories.csv"):
-        '''
-        Input: 
-        trajectories = {
-            1: {"x_trajectory": [10, 11], "y_trajectory": [20, 21], "class": "car", "frames": [1, 2]},
-            2: {"x_trajectory": [20, 21], "y_trajectory": [40, 41], "class": "car", "frames": [1]}
-        }
-
-        Output CSV format:
-        | id de vehículo | class | número de frame | posición en i | posición en j |
-        | ---            | ---   | ---             | ---           | ---          |
-        | 1              | car   | 1               | 10            | 20           |
-        | 1              | car   | 2               | 11            | 21           |
-        | 2              | car   | 1               | 20            | 40           |
-        '''
-        with open(output_path, mode='w', newline='') as file:
-            writer = csv.writer(file)
-            # Write header
-            writer.writerow(['id de vehículo', 'class', 'número de frame', 'posición en i', 'posición en j'])
-            
-            # Write data
-            for vehicle_id, data in trajectories.items():
-                x_trajectory = data['x_trajectory']
-                y_trajectory = data['y_trajectory']
-                vehicle_class = data['class']
-                frames = data['frames']
-                
-                for i, (x, y, frame) in enumerate(zip(x_trajectory, y_trajectory, frames)):
-                    writer.writerow([vehicle_id, vehicle_class, frame, x, y])
     
