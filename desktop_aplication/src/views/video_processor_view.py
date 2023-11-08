@@ -1,5 +1,4 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QPushButton, QFileDialog, QLabel
-import pdb
 
 class VideoProcessorView(QWidget):
     def __init__(self, aligners, detectors, aligner_filters, trajectory_filters):
@@ -46,15 +45,18 @@ class VideoProcessorView(QWidget):
         self.process_video_button = QPushButton("Process Video", self)
         layout.addWidget(self.process_video_button)
 
+        self.save_transformations_button = QPushButton("Export Video Transformations", self)
+        layout.addWidget(self.save_transformations_button)
+
+        self.save_trajectories_button = QPushButton("Export Trajectories", self)
+        layout.addWidget(self.save_trajectories_button)
+
         self.selected_video_label = QLabel("No video selected", self)
         layout.addWidget(self.selected_video_label)
 
         self.progress_label = QLabel("Progress: 0%", self)
         layout.addWidget(self.progress_label)
-
-        self.results_label = QLabel("Results will be displayed here", self)
-        layout.addWidget(self.results_label)
-
+        
         self.setLayout(layout)
         self.setWindowTitle("Video Processor")
         self.show()
@@ -73,7 +75,7 @@ class VideoProcessorView(QWidget):
         }
     
     def get_selected_object(self, objects_list, selected_object_name):
-        if selected_object_name is "None":
+        if selected_object_name == "None":
             return None
         else:
             return self.find_object_by_name(objects_list, selected_object_name)
@@ -95,5 +97,11 @@ class VideoProcessorView(QWidget):
         if self.input_video_path:
             self.selected_video_label.setText(self.input_video_path)
     
+    def export_csv_dialog(self, format):
+        file_path, _ = QFileDialog.getSaveFileName(self, "Export CSV file", "", "CSV Files (*.csv)")
+        if file_path:
+            format(output_path = file_path)
+
     def parse_to_string(self, elements):
         return list(map(str, elements))
+    
