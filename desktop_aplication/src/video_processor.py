@@ -1,4 +1,3 @@
-from models.input_video import InputVideo
 from filters import FilterChain
 import numpy as np
 
@@ -9,12 +8,10 @@ class VideoProcessor:
         self.aligner = None
         self.detector = None
     
-    def process_video(self, video_path):
+    def process_video(self, input_video):
         # Implements the video processing pipeline
         if self.aligner is None and self.detector is None:
             raise ValueError("Aligner and detector must be set before processing video")
-        
-        input_video = InputVideo(video_path)
         
         filtered_affine_transformations = None
         filtered_trajectories = None
@@ -24,7 +21,7 @@ class VideoProcessor:
             filtered_affine_transformations = self.filter_affine_transformations(affine_transformations)
 
         if self.detector != None:
-            detections = self.detector.detect(input_video.video_path)
+            detections = self.detector.detect(input_video.get_video_path(), input_video.get_video_fps())
             trajectories = self.detector.get_trajectories(detections)
             
             # Filter trajectories
