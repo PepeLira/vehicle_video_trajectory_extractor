@@ -29,6 +29,16 @@ class InputVideo:
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
+    def get_reference_frame(self):
+        video = cv2.VideoCapture(self.video_path)
+        ret, frame = video.read()
+        video.release()
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        if ret:
+            return frame
+        else:
+            return None
+
     def __str__(self):
         return self.video_path
         

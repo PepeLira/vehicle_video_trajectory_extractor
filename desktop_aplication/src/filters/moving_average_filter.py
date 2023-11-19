@@ -9,7 +9,7 @@ class MovingAverageFilter(Filter):
     def apply(self, data):
         n = len(data)
         if self.window_size > n:
-            raise ValueError("Data length must be larger than window size")
+            return data
 
         moving_averages = []
         for i in range(n - self.window_size + 1):
