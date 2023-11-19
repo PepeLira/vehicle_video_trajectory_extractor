@@ -1,4 +1,5 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QPushButton, QFileDialog, QLabel
+from .gps_reference_dialog import GPSReferenceDialog
 
 class VideoProcessorView(QWidget):
     def __init__(self, aligners, detectors, aligner_filters, trajectory_filters):
@@ -8,6 +9,8 @@ class VideoProcessorView(QWidget):
         self.detectors = detectors
         self.aligner_filters = aligner_filters
         self.trajectory_filters = trajectory_filters
+        self.input_video = None
+        self.reference_points = None
 
         self.initUI()
 
@@ -19,8 +22,11 @@ class VideoProcessorView(QWidget):
         self.setGeometry(300, 100, 400, 400)
         
         self.select_video_button = QPushButton("Select Video", self)
-        self.select_video_button.clicked.connect(self.select_video)
         layout.addWidget(self.select_video_button)
+
+        self.select_points_button = QPushButton("Select Coordinates for Reference", self)
+        self.select_points_button.clicked.connect(self.select_points_on_image)
+        layout.addWidget(self.select_points_button)
 
         self.aligner_dropdown = QComboBox(self)
         self.aligner_dropdown.addItems(["None"] + self.parse_to_string(self.aligners))
@@ -85,6 +91,20 @@ class VideoProcessorView(QWidget):
             if str(obj) == object_name:
                 return obj
         return None
+    
+    def select_points_on_image(self):
+        # Raise an error if no video is selected
+        if self.input_video is None:
+            raise ValueError("No video selected")
+
+        reference_image = self.input_video.get_reference_frame()
+
+        dialog = GPSReferenceDialog(image_array = reference_image)
+        dialog.exec_()
+
+        if not dialog.coordinates_mapping_is_empty():
+            self.reference_points = dialog.get_coordinates_mapping()
+            print(self.reference_points)
 
     def update_progress(self, progress):
         self.progress_label.setText(f"Progress: {progress}%")
@@ -92,10 +112,11 @@ class VideoProcessorView(QWidget):
     def display_results(self, results):
         self.results_label.setText(f"Results: {results}")
 
-    def select_video(self):
+    def select_video(self, set_input_video):
         self.input_video_path, _ = QFileDialog.getOpenFileName(self, "Select Video", "", "Video Files (*.mp4 *.avi)")
         if self.input_video_path:
             self.selected_video_label.setText(self.input_video_path)
+            self.input_video = set_input_video(self.input_video_path)
     
     def export_csv_dialog(self, format):
         file_path, _ = QFileDialog.getSaveFileName(self, "Export CSV file", "", "CSV Files (*.csv)")
@@ -104,4 +125,5 @@ class VideoProcessorView(QWidget):
 
     def parse_to_string(self, elements):
         return list(map(str, elements))
+    
     
