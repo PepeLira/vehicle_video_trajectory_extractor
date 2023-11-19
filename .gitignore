@@ -2,3 +2,4 @@
 /vehicle_detection/datasets
 __pycache__
 *trajectories.csv
+*.png
