@@ -2,13 +2,13 @@ from .detector_strategy import DetectorStrategy
 from ultralytics import YOLO
 
 class YOLOv8Detector(DetectorStrategy):
-    def __init__(self, source_weights_path="../../../models/custom_yolov8.pt", detection_threshold=0.3):
+    def __init__(self, source_weights_path="../../../models/cutom_dota.pt", detection_threshold=0.8):
         super().__init__(source_weights_path, detection_threshold)
         self.model = YOLO(source_weights_path)
 
     def detect(self, video_path, video_fps):
         self.fps = video_fps
-        results = self.model.track(source = video_path, verbose=False, conf=0.3, iou=0.6, show=True)
+        results = self.model.track(source=video_path, verbose=False, conf=self.detection_threshold, iou=0.5, show=True, tracker="bytetrack.yaml")
         video_detections = []
         for result_i in range(len(results)):
             detections = {}
@@ -18,13 +18,13 @@ class YOLOv8Detector(DetectorStrategy):
                 class_id = int(class_id)
                 if score > self.detection_threshold:
                     detections[track_id] = {
-                                            "bbox" : [x1, y1, x2, y2], 
-                                            "class" : results[result_i].names[class_id], 
-                                            "score": round(score, 2),
-                                            "frame": result_i
-                                            }
+                        "bbox": [x1, y1, x2, y2],
+                        "class": results[result_i].names[class_id],
+                        "score": round(score, 2),
+                        "frame": result_i
+                    }
             video_detections.append(detections)
-        
+
         return video_detections
     
     def get_trajectories(self, detections):
