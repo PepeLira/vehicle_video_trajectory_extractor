@@ -40,7 +40,7 @@ class VideoProcessorView(QWidget):
 
         self.detector_dropdown = QComboBox(self)
         self.detector_dropdown.addItems(["None"] + self.parse_to_string(self.detectors))
-        layout.addWidget(QLabel("Select Detector:"))
+        layout.addWidget(QLabel("Select Trajectory Extractor:"))
         layout.addWidget(self.detector_dropdown)
 
         self.trajectory_filter_dropdown = QComboBox(self)
@@ -53,9 +53,15 @@ class VideoProcessorView(QWidget):
 
         self.save_transformations_button = QPushButton("Export Video Transformations", self)
         layout.addWidget(self.save_transformations_button)
+        self.save_transformations_button.setEnabled(False)
 
         self.save_trajectories_button = QPushButton("Export Trajectories", self)
         layout.addWidget(self.save_trajectories_button)
+        self.save_trajectories_button.setEnabled(False)
+
+        self.save_video_button = QPushButton("Save Video with Results", self)
+        layout.addWidget(self.save_video_button)
+        self.save_video_button.setEnabled(False)
 
         self.selected_video_label = QLabel("No video selected", self)
         layout.addWidget(self.selected_video_label)
@@ -64,7 +70,7 @@ class VideoProcessorView(QWidget):
         layout.addWidget(self.progress_label)
         
         self.setLayout(layout)
-        self.setWindowTitle("Video Processor")
+        self.setWindowTitle("RastreoAéreo: Video Processor")
         self.show()
 
     def get_user_input(self):
