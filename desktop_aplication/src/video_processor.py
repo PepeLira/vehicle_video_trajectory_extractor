@@ -11,7 +11,7 @@ class VideoProcessor:
     def process_video(self, input_video):
         # Implements the video processing pipeline
         if self.aligner is None and self.detector is None:
-            raise ValueError("Aligner and detector must be set before processing video")
+            raise ValueError("Aligner or a detector must be set before processing video")
         
         filtered_affine_transformations = None
         filtered_trajectories = None
