@@ -34,10 +34,12 @@ class VideoProcessorController:
         parameters = self._ui_view.get_user_input()
         if parameters["aligner"] != None:
             self._video_processor.set_aligner(parameters["aligner"])
-            self._video_processor.add_aligner_filter(parameters["aligner_filter"])
+            if parameters["aligner_filter"] != None:
+                self._video_processor.add_aligner_filter(parameters["aligner_filter"])
         if parameters["detector"] != None:
             self._video_processor.set_detector(parameters["detector"])
-            self._video_processor.add_trajectory_extractor_filter(parameters["trajectory_filter"])
+            if parameters["trajectory_filter"] != None:
+                self._video_processor.add_trajectory_extractor_filter(parameters["trajectory_filter"])
 
     def select_video(self):
         self._ui_view.select_video(self.set_input_video)
