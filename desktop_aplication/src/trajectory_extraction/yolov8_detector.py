@@ -8,7 +8,7 @@ class YOLOv8Detector(DetectorStrategy):
 
     def detect(self, video_path, video_fps):
         self.fps = video_fps
-        results = self.model.track(source=video_path, verbose=False, conf=self.detection_threshold, iou=0.5, show=True, tracker="bytetrack.yaml")
+        results = self.model.track(source=video_path, verbose=False, conf=self.detection_threshold, iou=0.8, show=True, tracker="bytetrack.yaml", imgsz=1280)
         video_detections = []
         for result_i in range(len(results)):
             detections = {}
@@ -54,7 +54,7 @@ class YOLOv8Detector(DetectorStrategy):
 
     
     def __str__(self):
-        return "YOLOv8 Detector"
+        return "YOLOv8 + ByteTrack"
 
 if __name__ == "__main__":
     detector = YOLOv8Detector()
