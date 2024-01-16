@@ -20,7 +20,7 @@ Este documento busca describir algunos de los elementos importantes para impleme
   - `video_fps` (float): Frames por segundo del video.
 - **Procesamiento**: Utiliza el modelo YOLO para detectar objetos en el video.
 - **Salida**:
-  - Lista de diccionarios, cada uno representando las detecciones en un frame. Cada diccionario tiene claves que son los IDs de seguimiento y valores que son otro diccionario con información de la detección.
+  - Lista de diccionarios, cada uno representando las detecciones en un frame. Cada diccionario tiene claves que son los IDs de seguimiento y valores que son otro diccionario con información de la detección. En este ultimo se incluyen `"bbox"`, `"class"`, `"score"`, `"frame"`, que corresponden a las etiquetas, índice de clases, confidence y el numero de frame en el que se encuentran respectivamente.
 
 ### Método `get_trajectories`
 - **Entrada**:
