@@ -6,9 +6,9 @@ class YOLOv8Detector(DetectorStrategy):
         super().__init__(source_weights_path, detection_threshold)
         self.model = YOLO(source_weights_path)
 
-    def detect(self, video_path, video_fps):
+    def detect(self, input_video, video_fps):
         self.fps = video_fps
-        results = self.model.track(source=video_path, verbose=False, conf=self.detection_threshold, iou=0.8, show=True, tracker="bytetrack.yaml", imgsz=1280)
+        results = self.model.track(source=input_video.get_video_path(), verbose=False, conf=self.detection_threshold, iou=0.8, show=True, tracker="bytetrack.yaml", imgsz=1280)
         video_detections = []
         for result_i in range(len(results)):
             detections = {}
