@@ -1,5 +1,6 @@
 from filters import FilterChain
 import numpy as np
+import tqdm
 
 class VideoProcessor:
     def __init__(self, aligner_filter_chain: FilterChain, trajectory_filter_chain: FilterChain):
@@ -19,20 +20,22 @@ class VideoProcessor:
         if self.aligner != None:
             affine_transformations = self.aligner.set_affine_transformations(input_video)
             filtered_affine_transformations = self.filter_affine_transformations(affine_transformations)
+            self.aligner.update_affine_transformations(filtered_affine_transformations)
+            input_video.set_aligner(self.aligner)
 
         if self.detector != None:
-            detections = self.detector.detect(input_video.get_video_path(), input_video.get_video_fps())
+            detections = self.detector.detect(input_video, input_video.get_video_fps())
             trajectories = self.detector.get_trajectories(detections)
-            
-            # Filter trajectories
             filtered_trajectories = self.filter_trajectories(trajectories)
+            self.detector.update_trajectories(trajectories)
+            input_video.set_detector(self.detector)
 
         return filtered_trajectories, filtered_affine_transformations
 
     def filter_trajectories(self, trajectories):
-        for trajectory in trajectories.keys():
-            trajectories[trajectory]["x_trajectory"] = self.trajectory_filter_chain.apply_filters(trajectories[trajectory]["x_trajectory"])
-            trajectories[trajectory]["y_trajectory"] = self.trajectory_filter_chain.apply_filters(trajectories[trajectory]["y_trajectory"])
+        for car_id in trajectories.keys():
+            trajectories[car_id]["x_trajectory"] = self.trajectory_filter_chain.apply_filters(trajectories[car_id]["x_trajectory"])
+            trajectories[car_id]["y_trajectory"] = self.trajectory_filter_chain.apply_filters(trajectories[car_id]["y_trajectory"])
         return trajectories
     
     def filter_affine_transformations(self, affine_transformations):
