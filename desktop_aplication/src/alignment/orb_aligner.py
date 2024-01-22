@@ -8,6 +8,7 @@ class OrbAligner(AlignerStrategy):
         self.matcher = None
         self.filter = None
         self.nfeatures = None
+        self.affine_transformations = None
         self.feature_rate = 1
 
         self.orb = cv2.ORB_create(nfeatures=self.nfeatures)
@@ -32,6 +33,9 @@ class OrbAligner(AlignerStrategy):
         aligned_frame = cv2.warpAffine(frame, self.reformat(affine_transformations[frame_index]), (frame.shape[1], frame.shape[0]))
 
         return aligned_frame
+
+    def update_affine_transformations(self, affine_transformations):
+        self.affine_transformations = affine_transformations
 
     def set_affine_transformations(self, input_video):
         self.affine_transformations = [np.array([0, 1, 0, 0])] # el primer frame no se mueve
