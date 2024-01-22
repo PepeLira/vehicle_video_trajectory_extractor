@@ -3,3 +3,5 @@
 __pycache__
 *trajectories.csv
 *.png
+/videos
+*.avi
