@@ -1,7 +1,9 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QPushButton, QFileDialog, QLabel
 from .gps_reference_dialog import GPSReferenceDialog
+from PyQt5.QtCore import pyqtSignal
 
 class VideoProcessorView(QWidget):
+    progress_changed = pyqtSignal(int)
     def __init__(self, aligners, detectors, aligner_filters, trajectory_filters):
         super().__init__()
 
@@ -10,7 +12,8 @@ class VideoProcessorView(QWidget):
         self.aligner_filters = aligner_filters
         self.trajectory_filters = trajectory_filters
         self.input_video = None
-        self.reference_points = None
+        self.reference_points = []
+        self.progress = 0
 
         self.initUI()
 
@@ -40,7 +43,7 @@ class VideoProcessorView(QWidget):
 
         self.detector_dropdown = QComboBox(self)
         self.detector_dropdown.addItems(["None"] + self.parse_to_string(self.detectors))
-        layout.addWidget(QLabel("Select Detector:"))
+        layout.addWidget(QLabel("Select Trajectory Extractor:"))
         layout.addWidget(self.detector_dropdown)
 
         self.trajectory_filter_dropdown = QComboBox(self)
@@ -53,9 +56,15 @@ class VideoProcessorView(QWidget):
 
         self.save_transformations_button = QPushButton("Export Video Transformations", self)
         layout.addWidget(self.save_transformations_button)
+        self.save_transformations_button.setEnabled(False)
 
         self.save_trajectories_button = QPushButton("Export Trajectories", self)
         layout.addWidget(self.save_trajectories_button)
+        self.save_trajectories_button.setEnabled(False)
+
+        self.save_video_button = QPushButton("Save Video with Results", self)
+        layout.addWidget(self.save_video_button)
+        self.save_video_button.setEnabled(False)
 
         self.selected_video_label = QLabel("No video selected", self)
         layout.addWidget(self.selected_video_label)
@@ -64,7 +73,7 @@ class VideoProcessorView(QWidget):
         layout.addWidget(self.progress_label)
         
         self.setLayout(layout)
-        self.setWindowTitle("Video Processor")
+        self.setWindowTitle("RastreoAéreo: Video Processor")
         self.show()
 
     def get_user_input(self):
@@ -105,12 +114,19 @@ class VideoProcessorView(QWidget):
         if not dialog.coordinates_mapping_is_empty():
             self.reference_points = dialog.get_coordinates_mapping()
             print(self.reference_points)
+    
+    def enable_save_results(self):
+        self.save_transformations_button.setEnabled(True)
+        self.save_trajectories_button.setEnabled(True)
+        self.save_video_button.setEnabled(True)
 
-    def update_progress(self, progress):
-        self.progress_label.setText(f"Progress: {progress}%")
+    def set_progress(self, value, stage):
+        if self.progress != value:
+            self.progress = value
+            self.progress_changed.emit(value, stage)  # Emit the signal
 
-    def display_results(self, results):
-        self.results_label.setText(f"Results: {results}")
+    def update_progress(self, progress, stage):
+        self.progress_label.setText(f"Progress: {progress}% - {stage}")
 
     def select_video(self, set_input_video):
         self.input_video_path, _ = QFileDialog.getOpenFileName(self, "Select Video", "", "Video Files (*.mp4 *.avi)")
@@ -118,8 +134,13 @@ class VideoProcessorView(QWidget):
             self.selected_video_label.setText(self.input_video_path)
             self.input_video = set_input_video(self.input_video_path)
     
-    def export_csv_dialog(self, format):
-        file_path, _ = QFileDialog.getSaveFileName(self, "Export CSV file", "", "CSV Files (*.csv)")
+    def export_csv_dialog(self, format, file_name="results"):
+        file_path, _ = QFileDialog.getSaveFileName(self, "Export CSV file", file_name, "CSV Files (*.csv)")
+        if file_path:
+            format(output_path = file_path)
+
+    def save_video_dialog(self, format, file_name="tracked_video"):
+        file_path, _ = QFileDialog.getSaveFileName(self, "Save Video File", file_name, "Video Files (*.mp4 *.avi)")
         if file_path:
             format(output_path = file_path)
 

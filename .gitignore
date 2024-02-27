@@ -1,4 +1,6 @@
-*.mp4
 /vehicle_detection/datasets
 __pycache__
 *trajectories.csv
+*.png
+/videos
+*.avi
