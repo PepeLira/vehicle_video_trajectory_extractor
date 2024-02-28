@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QApplication
 from alignment import OrbAligner
-from trajectory_extraction import YOLOv8Detector, YOLOv8SortDetector
+from trajectory_extraction import YOLOv8ByteTrackDetector, YOLOv8SortDetector
 from video_processor import VideoProcessor
 from controllers import VideoProcessorController
 from views import VideoProcessorView
@@ -12,7 +12,7 @@ def main():
     aligner_filters = [MovingAverageFilter()] # You can add more filters
     trajectory_extractor_filters = [MovingAverageFilter()] # You can add more filters
     aligners = [OrbAligner()]
-    detectors = [YOLOv8Detector(), YOLOv8SortDetector()]
+    detectors = [YOLOv8ByteTrackDetector(), YOLOv8SortDetector()]
     aligner_filter_chain = FilterChain()
     trajectory_filter_chain = FilterChain()
     

@@ -1,7 +1,7 @@
 from .detector_strategy import DetectorStrategy
 from ultralytics import YOLO
 
-class YOLOv8Detector(DetectorStrategy):
+class YOLOv8ByteTrackDetector(DetectorStrategy):
     def __init__(self, source_weights_path="../../../models/cutom_dota.pt", detection_threshold=0.8):
         super().__init__(source_weights_path, detection_threshold)
         self.model = YOLO(source_weights_path)

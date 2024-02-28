@@ -1,14 +1,7 @@
-from .detector_strategy import DetectorStrategy
+from .detector_strategy import DetectorStrategy, resize_frame
 from ultralytics import YOLO
-import numpy as np
 import cv2
 from .extensions.sort import Sort
-
-def resize_frame(frame, max_width=1440, max_height=810):
-    h, w = frame.shape[:2]
-    scale = min(max_width / w, max_height / h)
-    new_w, new_h = int(w * scale), int(h * scale)
-    return cv2.resize(frame, (new_w, new_h))
 
 class YOLOv8SortDetector(DetectorStrategy):
     def __init__(self, source_weights_path="../../../models/cutom_dota.pt", detection_threshold=0.5):
@@ -100,5 +93,3 @@ if __name__ == "__main__":
 
     detections = detector.detect(video_path, 30)
     trajectories = detector.get_trajectories(detections)
-
-
