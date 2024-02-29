@@ -7,7 +7,7 @@ class OrbAligner(AlignerStrategy):
         self.detector = None
         self.matcher = None
         self.filter = None
-        self.nfeatures = None
+        self.nfeatures = 1000
         self.affine_transformations = None
         self.feature_rate = 1
 
@@ -29,8 +29,10 @@ class OrbAligner(AlignerStrategy):
             raise Exception("The affine transformations must be set before aligning the frames")
         elif frame_index >= len(affine_transformations):
             raise Exception("The affine transformation for the frame {} cant be found".format(frame_index))
+        
+        affine_matrix = self.reformat(affine_transformations[frame_index])
 
-        aligned_frame = cv2.warpAffine(frame, self.reformat(affine_transformations[frame_index]), (frame.shape[1], frame.shape[0]))
+        aligned_frame = cv2.warpAffine(frame, affine_matrix, (frame.shape[1], frame.shape[0]))
 
         return aligned_frame
 
@@ -38,25 +40,23 @@ class OrbAligner(AlignerStrategy):
         self.affine_transformations = affine_transformations
 
     def set_affine_transformations(self, input_video):
-        self.affine_transformations = [np.array([0, 1, 0, 0])] # el primer frame no se mueve
-        frame_count = 0
+        self.affine_transformations = [np.array([0, 1, 0, 0])] # the first frame stays still
+        first_frame = True
         for current_frame in input_video.get_frames():
-            if frame_count == 0:
+            if first_frame:
                 reference_frame = current_frame
                 rf_keypoints, rf_descriptor = self.extract_features(reference_frame)
-                frame_count += 1
-                continue
-            
-            current_frame_keypoints, current_frame_descriptor = self.extract_features(current_frame)
+                first_frame = False
+            else:
+                current_frame_keypoints, current_frame_descriptor = self.extract_features(current_frame)
 
-            source_pts, destination_pts = self.match_features(
-                                            (rf_keypoints, rf_descriptor), 
-                                            (current_frame_keypoints, current_frame_descriptor))
-            affine_matrix = self.estimate_affine_matrix(source_pts, destination_pts)
-            affine_transformation = self.extract_affine_parameters(affine_matrix)
+                source_pts, destination_pts = self.match_features((current_frame_keypoints, current_frame_descriptor), 
+                                                                  (rf_keypoints, rf_descriptor))
+                affine_matrix, _ = cv2.estimateAffinePartial2D(source_pts, destination_pts, confidence= 0.9, method=cv2.RANSAC)
+                affine_transformation = self.extract_affine_parameters(affine_matrix)
 
-            self.affine_transformations.append(affine_transformation)
-            frame_count += 1
+                self.affine_transformations.append(affine_transformation)
+        
         return self.affine_transformations
 
     def extract_features(self, frame):
@@ -73,10 +73,6 @@ class OrbAligner(AlignerStrategy):
         destination_points = np.float32([feature_pair_2[0][m.trainIdx].pt for m in matches]).reshape(-1, 1, 2)
 
         return source_points, destination_points
-    
-    def estimate_affine_matrix(self, source_points, destination_points):
-        affine_matrix, _ = cv2.estimateAffinePartial2D(source_points, destination_points)
-        return affine_matrix
     
     def extract_affine_parameters(self, matrix):
         s = np.sqrt(matrix[0, 0] ** 2 + matrix[1, 0] ** 2)
@@ -97,7 +93,7 @@ class OrbAligner(AlignerStrategy):
         cos_theta = np.cos(theta)
         sin_theta = np.sin(theta)
         
-        matrix = np.matrix([
+        matrix = np.array([
         [cos_theta * s, -sin_theta * s, tx],
         [sin_theta * s, cos_theta * s, ty]
         ])
