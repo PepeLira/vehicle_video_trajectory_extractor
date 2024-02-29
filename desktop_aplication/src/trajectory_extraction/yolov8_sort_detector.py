@@ -1,4 +1,4 @@
-from .detector_strategy import DetectorStrategy, resize_frame
+from .detector_strategy import DetectorStrategy
 from ultralytics import YOLO
 import cv2
 from .extensions.sort import Sort
@@ -71,8 +71,7 @@ class YOLOv8SortDetector(DetectorStrategy):
                     cv2.putText(img=frame, text=f"Id: {track_id}", org=(xmin, ymin-10), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=2, color=(0,255,0), thickness=2)
                     cv2.rectangle(img=frame, pt1=(xmin, ymin), pt2=(xmax, ymax), color=(0, 255, 0), thickness=2)
                     cv2.circle(img=frame, center=(int((xmin + xmax) / 2), int((ymin + ymax) / 2)), radius=0, color=(0, 0, 255), thickness=2)
-            resized_frame = resize_frame(frame)
-            cv2.imshow("frame", resized_frame)
+            input_video.display_frame(frame)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break  # Add a delay (0 means wait indefinitely)    
             self.results.append(new_data)

@@ -129,12 +129,6 @@ if __name__ == "__main__":
             video.release()
             return fps
 
-        def display_frames(self, frame):
-            for frame in self.get_frames():
-                cv2.imshow("Frame", frame)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-
         def __str__(self):
             return self.video_path
 
