@@ -58,3 +58,6 @@ class DetectorStrategy(ABC):
                     represented as a list of (x, y) coordinates.
         """
         raise NotImplementedError("The get_trajectories method must be implemented")
+    
+    def update_trajectories(self, trajectories):
+        self.trajectories = trajectories

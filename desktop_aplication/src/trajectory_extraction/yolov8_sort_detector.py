@@ -48,9 +48,6 @@ class YOLOv8SortDetector(DetectorStrategy):
                 self.trajectories[track_id]["time"].append(i/self.fps)
         return self.trajectories
     
-    def update_trajectories(self, trajectories):
-        self.trajectories = trajectories
-    
     def calculate_tracking_point(self, bbox):
         x1, y1, x2, y2 = bbox
         return ((x1 + x2) / 2, (y1 + y2) / 2)
