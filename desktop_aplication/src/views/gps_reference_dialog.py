@@ -2,6 +2,18 @@ from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout, QGraphicsView, QGraphi
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import Qt, QRectF
 
+def array_to_pixmap(array):
+        if array is None:
+            return None
+
+        height, width, channel = array.shape
+        bytes_per_line = 3 * width
+        q_image = QImage(array.data, width, height, bytes_per_line, QImage.Format_RGB888)
+        
+        pixmap = QPixmap.fromImage(q_image)
+
+        return pixmap
+
 
 class GPSReferenceDialog(QDialog):
 
@@ -40,7 +52,7 @@ class GPSReferenceDialog(QDialog):
         self.layout = QVBoxLayout(self)
         self.view = QGraphicsView(self)
         self.scene = QGraphicsScene(self)
-        self.pixmap_item = QGraphicsPixmapItem(self.array_to_pixmap(self.image_array))
+        self.pixmap_item = QGraphicsPixmapItem(array_to_pixmap(self.image_array))
         self.scene.addItem(self.pixmap_item)
       
         self.view.setScene(self.scene)
@@ -103,15 +115,3 @@ class GPSReferenceDialog(QDialog):
         )        
         self.layout.addWidget(gps_entry)
         self.gps_entries.append(gps_entry)
-
-    def array_to_pixmap(self, array):
-        if array is None:
-            return None
-
-        height, width, channel = array.shape
-        bytes_per_line = 3 * width
-        q_image = QImage(array.data, width, height, bytes_per_line, QImage.Format_RGB888)
-        
-        pixmap = QPixmap.fromImage(q_image)
-
-        return pixmap

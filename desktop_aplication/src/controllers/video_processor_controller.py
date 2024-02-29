@@ -60,6 +60,7 @@ class VideoProcessorController:
     def set_input_video(self, input_video_path):
         self.input_video = InputVideo(input_video_path)
         self.input_video.update_progress(self._ui_view.update_progress)
+        self.input_video.display_frame_call(self._ui_view.update_image)
         return self.input_video
         
     def record_trajectories_csv(self, output_path="trajectories.csv"):

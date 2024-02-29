@@ -1,6 +1,7 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QPushButton, QFileDialog, QLabel
-from .gps_reference_dialog import GPSReferenceDialog
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QGraphicsPixmapItem 
+from PyQt5.QtWidgets import QPushButton, QFileDialog, QLabel, QGraphicsScene, QGraphicsView
+from .gps_reference_dialog import GPSReferenceDialog, array_to_pixmap
+from PyQt5.QtCore import Qt, pyqtSignal
 
 class VideoProcessorView(QWidget):
     progress_changed = pyqtSignal(int)
@@ -14,16 +15,48 @@ class VideoProcessorView(QWidget):
         self.input_video = None
         self.reference_points = []
         self.progress = 0
+        self.image_array = None
+        self.input_video_path = None
 
         self.initUI()
 
     def initUI(self):
-        # Layout
-        layout = QVBoxLayout(self)
+        # Main layout
+        main_layout = QVBoxLayout(self)
 
-        self.input_video_path = None
-        self.setGeometry(300, 100, 400, 400)
+        # Top layout with two sections
+        top_layout = QHBoxLayout()
+
+        # Two sections in the top layout
+        top_left_container = self.add_top_left_widgets()
         
+        top_right_layout = QVBoxLayout()
+        self.add_top_right_widgets(top_right_layout)
+
+        # Add the top left and top right layouts to the top layout
+        top_layout.addWidget(top_left_container, alignment=Qt.AlignTop)
+        top_layout.addLayout(top_right_layout)
+
+        # Bottom layout
+        bottom_layout = QVBoxLayout()
+
+        self.add_bottom_widgets(bottom_layout)
+
+        # Add the top and bottom layouts to the main layout
+        main_layout.addLayout(top_layout)
+        main_layout.addLayout(bottom_layout)
+        
+        # self.setGeometry(300, 100, 400, 400)
+        
+        self.setLayout(main_layout)
+        self.setWindowTitle("RastreoAéreo: Video Processor")
+        self.show()
+
+    def add_top_left_widgets(self):
+
+        top_left_container = QWidget()
+        layout = QVBoxLayout(top_left_container)
+
         self.select_video_button = QPushButton("Select Video", self)
         layout.addWidget(self.select_video_button)
 
@@ -66,15 +99,25 @@ class VideoProcessorView(QWidget):
         layout.addWidget(self.save_video_button)
         self.save_video_button.setEnabled(False)
 
+        # Set a maximum height for the container widget
+        top_left_container.setMaximumHeight(500)
+        top_left_container.setMinimumHeight(400)
+
+        return top_left_container
+
+    def add_top_right_widgets(self, layout):
+        self.scene = QGraphicsScene(self)
+        self.pixmap_item = QGraphicsPixmapItem(array_to_pixmap(self.image_array))
+        self.scene.addItem(self.pixmap_item)
+        self.graphics_view = QGraphicsView(self.scene)
+        layout.addWidget(self.graphics_view)
+
+    def add_bottom_widgets(self, layout):
         self.selected_video_label = QLabel("No video selected", self)
         layout.addWidget(self.selected_video_label)
 
         self.progress_label = QLabel("Progress: 0%", self)
         layout.addWidget(self.progress_label)
-        
-        self.setLayout(layout)
-        self.setWindowTitle("RastreoAéreo: Video Processor")
-        self.show()
 
     def get_user_input(self):
         selected_aligner = self.get_selected_object(self.aligners, self.aligner_dropdown.currentText())
@@ -127,6 +170,10 @@ class VideoProcessorView(QWidget):
 
     def update_progress(self, progress, stage):
         self.progress_label.setText(f"Progress: {progress}% - {stage}")
+
+    def update_image(self, image_array):
+        self.image_array = image_array
+        self.pixmap_item.setPixmap(array_to_pixmap(self.image_array))
 
     def select_video(self, set_input_video):
         self.input_video_path, _ = QFileDialog.getOpenFileName(self, "Select Video", "", "Video Files (*.mp4 *.avi)")

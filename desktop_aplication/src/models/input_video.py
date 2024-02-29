@@ -85,11 +85,8 @@ class InputVideo:
         else:
             return None
         
-    def display_frames(self, frame):
-        for frame in self.get_frames():
-            cv2.imshow("Frame", frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+    def display_frame(self, frame):
+        self.display_frame_call(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
     def stream_frames(self):
         self.progress = 0
@@ -130,6 +127,9 @@ class InputVideo:
         
     def update_progress(self, call):
         self.progress_call = call
+
+    def display_frame_call(self, call):
+        self.display_frame_call = call
 
     def __str__(self):
         return self.video_path
