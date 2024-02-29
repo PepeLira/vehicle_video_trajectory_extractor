@@ -1,12 +1,6 @@
 from abc import ABC, abstractmethod
 import cv2
 
-def resize_frame(frame, max_width=1440, max_height=810):
-    h, w = frame.shape[:2]
-    scale = min(max_width / w, max_height / h)
-    new_w, new_h = int(w * scale), int(h * scale)
-    return cv2.resize(frame, (new_w, new_h))
-
 class DetectorStrategy(ABC):
     @abstractmethod
     def __init__(self, source_weights_path, detection_threshold):

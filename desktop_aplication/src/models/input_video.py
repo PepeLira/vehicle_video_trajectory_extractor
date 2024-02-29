@@ -1,6 +1,12 @@
 import cv2
 from PyQt5.QtCore import QCoreApplication
 
+def resize_frame(frame, max_width=1440, max_height=810):
+    h, w = frame.shape[:2]
+    scale = min(max_width / w, max_height / h)
+    new_w, new_h = int(w * scale), int(h * scale)
+    return cv2.resize(frame, (new_w, new_h))
+
 class InputVideo:
     def __init__(self, video_path):
         self.video_path = video_path
@@ -86,6 +92,7 @@ class InputVideo:
             return None
         
     def display_frame(self, frame):
+        # frame = resize_frame(frame)
         self.display_frame_call(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
     def stream_frames(self):
