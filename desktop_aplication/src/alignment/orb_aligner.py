@@ -42,7 +42,7 @@ class OrbAligner(AlignerStrategy):
     def set_affine_transformations(self, input_video):
         self.affine_transformations = [np.array([0, 1, 0, 0])] # the first frame stays still
         first_frame = True
-        for current_frame in input_video.get_frames():
+        for current_frame in input_video.get_frames(stage = "Aligning"):
             if first_frame:
                 reference_frame = current_frame
                 rf_keypoints, rf_descriptor = self.extract_features(reference_frame)

@@ -27,12 +27,11 @@ class InputVideo:
     def is_detected(self):
         return self.detector is not None
     
-    def get_frames(self):
+    def get_frames(self, stage=""):
+        self.stage = stage
         if self.is_aligned():
-            self.stage = '"Tracking"'
             return self.get_aligned_frames()
         else:
-            self.stage = '"Aligning"'
             return self.stream_frames()
 
     def get_video_path(self):
@@ -122,7 +121,7 @@ class InputVideo:
         if self.is_detected():
             rt = self.reorganize_trajectories() # rt = reorganized_trajectories
         frame_count = 0
-        for frame in self.get_frames():
+        for frame in self.get_frames( stage='"Saving Video"'):
             if self.is_detected():
                 for x, y, id in zip(rt[frame_count]["x"], rt[frame_count]["y"], rt[frame_count]["ids"]):
                     cv2.putText(img=frame, text=f"{id}", org=(x, y-6), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=3, color=(0,255,0), thickness=2)

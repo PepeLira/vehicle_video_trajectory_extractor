@@ -56,7 +56,7 @@ class YOLOv8SortDetector(DetectorStrategy):
         tracker = Sort(max_age=15)
         self.results = []
         frame_count = 0
-        for frame in input_video.get_frames():
+        for frame in input_video.get_frames(stage="Tracking"):
             results = self.model(frame, stream=True, verbose=False, imgsz=input_video.get_video_width())
             for res in results:
                 # filtered_indices = np.where(res.boxes.conf.cpu().numpy() > 0.3)[0]

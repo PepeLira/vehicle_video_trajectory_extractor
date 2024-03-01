@@ -31,7 +31,7 @@ class YOLOv8ByteTrackDetector(DetectorStrategy):
     def byte_track(self, input_video):
         self.results = []
         frame_count = 0
-        for frame in input_video.get_frames():
+        for frame in input_video.get_frames(stage="Tracking"):
             results = self.model.track(frame, persist=True, imgsz=1280, show_labels=False, show_conf=False, show_boxes=False, tracker="bytetrack.yaml", verbose=False)
             
             # Get the boxes, track IDs and confidences

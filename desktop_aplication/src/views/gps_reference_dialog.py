@@ -1,5 +1,7 @@
-from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QGraphicsEllipseItem, QLineEdit, QPushButton
-from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout, QGraphicsView, QGraphicsScene 
+from PyQt5.QtWidgets import QGraphicsPixmapItem, QGraphicsEllipseItem, QLineEdit
+from PyQt5.QtWidgets import QPushButton, QMessageBox
+from PyQt5.QtGui import QPixmap, QImage, QCursor
 from PyQt5.QtCore import Qt, QRectF
 
 def array_to_pixmap(array):
@@ -45,7 +47,8 @@ class GPSReferenceDialog(QDialog):
             Qt.gray
             ]
         self.current_color_index = 0
-
+        
+        self.coordinates_mapping = {}
         self.initUI()
 
     def initUI(self):
@@ -53,14 +56,17 @@ class GPSReferenceDialog(QDialog):
         self.view = QGraphicsView(self)
         self.scene = QGraphicsScene(self)
         self.pixmap_item = QGraphicsPixmapItem(array_to_pixmap(self.image_array))
+        self.pixmap_item.setCursor(QCursor(Qt.PointingHandCursor))
         self.scene.addItem(self.pixmap_item)
-      
+    
         self.view.setScene(self.scene)
         self.layout.addWidget(self.view)
 
+        # Set the drag mode and other optimizations as before
         self.view.setDragMode(QGraphicsView.ScrollHandDrag)
         self.view.setOptimizationFlags(QGraphicsView.DontAdjustForAntialiasing | QGraphicsView.DontSavePainterState)
         self.view.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
+    
       
         self.coords_label = QLabel(self)
         self.layout.addWidget(self.coords_label)
@@ -82,11 +88,17 @@ class GPSReferenceDialog(QDialog):
         return len(self.coordinates_mapping) == 0 
 
     def prepare_and_accept(self):
-        self.coordinates_mapping = {}
-        for point, entry in zip(self.selected_points, self.gps_entries):
-            x, y, color = point
-            gps_coords = list(map(float,entry.text().split(",")))
-            self.coordinates_mapping[(x, y)] = gps_coords
+        if len(self.selected_points) >= 3 and len(self.gps_entries)>= 3:
+            if len(self.selected_points) != len(self.gps_entries):
+                self.show_error_dialog("You must enter the GPS coordinates for each selected point")
+            else:
+                for point, entry in zip(self.selected_points, self.gps_entries):
+                    x, y, color = point
+                    gps_coords = list(map(float,entry.text().split(",")))
+                    self.coordinates_mapping[(x, y)] = gps_coords
+        else:
+            self.show_error_dialog("You must select at least 3 points and enter the GPS coordinates for each one")
+        
         self.accept()
 
     def image_clicked(self, event):
@@ -115,3 +127,10 @@ class GPSReferenceDialog(QDialog):
         )        
         self.layout.addWidget(gps_entry)
         self.gps_entries.append(gps_entry)
+    
+    def show_error_dialog(self, text):
+        error_dialog = QMessageBox()
+        error_dialog.setIcon(QMessageBox.Critical)
+        error_dialog.setText(text)
+        error_dialog.setWindowTitle("Error")
+        error_dialog.exec_() 

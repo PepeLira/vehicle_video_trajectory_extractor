@@ -20,3 +20,6 @@ class FilterChain:
         for filter in self.filters:
             data = filter.apply(data)
         return data
+    
+    def clear_filters(self):
+        self.filters = []

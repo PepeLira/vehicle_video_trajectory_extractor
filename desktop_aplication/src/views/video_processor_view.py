@@ -1,5 +1,6 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QGraphicsPixmapItem 
-from PyQt5.QtWidgets import QPushButton, QFileDialog, QLabel, QGraphicsScene, QGraphicsView
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QComboBox 
+from PyQt5.QtWidgets import QPushButton, QFileDialog, QLabel, QGraphicsScene
+from PyQt5.QtWidgets import QMessageBox, QGraphicsPixmapItem, QGraphicsView
 from .gps_reference_dialog import GPSReferenceDialog, array_to_pixmap
 from PyQt5.QtCore import Qt, pyqtSignal
 
@@ -46,7 +47,7 @@ class VideoProcessorView(QWidget):
         main_layout.addLayout(top_layout)
         main_layout.addLayout(bottom_layout)
         
-        # self.setGeometry(300, 100, 400, 400)
+        self.setGeometry(300, 100, 1280, 720)
         
         self.setLayout(main_layout)
         self.setWindowTitle("RastreoAéreo: Video Processor")
@@ -100,7 +101,7 @@ class VideoProcessorView(QWidget):
         self.save_video_button.setEnabled(False)
 
         # Set a maximum height for the container widget
-        top_left_container.setMaximumHeight(500)
+        top_left_container.setMaximumHeight(550)
         top_left_container.setMinimumHeight(400)
 
         return top_left_container
@@ -145,9 +146,9 @@ class VideoProcessorView(QWidget):
         return None
     
     def select_points_on_image(self):
-        # Raise an error if no video is selected
         if self.input_video is None:
-            raise ValueError("No video selected")
+            self.show_error_dialog("No video selected")
+            return
 
         reference_image = self.input_video.get_reference_frame()
 
@@ -193,5 +194,18 @@ class VideoProcessorView(QWidget):
 
     def parse_to_string(self, elements):
         return list(map(str, elements))
+    
+    def clear_dropdowns(self):
+        self.aligner_dropdown.setCurrentIndex(0)
+        self.aligner_filter_dropdown.setCurrentIndex(0)
+        self.detector_dropdown.setCurrentIndex(0)
+        self.trajectory_filter_dropdown.setCurrentIndex(0)
+    
+    def show_error_dialog(self, text):
+        error_dialog = QMessageBox()
+        error_dialog.setIcon(QMessageBox.Critical)
+        error_dialog.setText(text)
+        error_dialog.setWindowTitle("Error")
+        error_dialog.exec_() 
     
     
