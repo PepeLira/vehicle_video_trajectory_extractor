@@ -1,5 +1,5 @@
 import cv2
-from PyQt5.QtCore import QCoreApplication
+import queue
 
 def resize_frame(frame, max_width=1440, max_height=810):
     h, w = frame.shape[:2]
@@ -14,6 +14,7 @@ class InputVideo:
         self.detector = None
         self.progress = 0
         self.stage = ''
+        self.frames_queue = queue.Queue(maxsize=10)
 
     def set_aligner(self, aligner):
         self.aligner = aligner
@@ -44,7 +45,6 @@ class InputVideo:
             frame_count += 1
 
     def reorganize_trajectories(self):
-        self.stage = '"reorganize trajectories"'
         frame_trajectories = {}
         self.progress = 0
         step = 100/len(self.detector.trajectories.items())
@@ -59,7 +59,6 @@ class InputVideo:
 
             self.progress += step
             self.progress_call(round(self.progress, 2), self.stage)
-            QCoreApplication.processEvents()
         return frame_trajectories
 
     def get_video_fps(self):
@@ -90,9 +89,10 @@ class InputVideo:
         else:
             return None
         
-    def display_frame(self, frame):
-        # frame = resize_frame(frame)
-        self.display_frame_call(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+    def update_frames_queue(self, frame):
+        # Put the frame in the queue
+        if not self.frames_queue.full():
+            self.frames_queue.put(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
     def stream_frames(self):
         self.progress = 0
@@ -106,12 +106,10 @@ class InputVideo:
                 break
             self.progress += step
             self.progress_call(round(self.progress, 2), self.stage)
-            QCoreApplication.processEvents()
         
         video.release()
 
     def save_processed_video(self, output_path="tracked_video.mp4"):
-        self.stage = '"Video Saving"'
         video = cv2.VideoCapture(self.video_path)
         fps = video.get(cv2.CAP_PROP_FPS)
         frame_width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -119,7 +117,7 @@ class InputVideo:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))
         if self.is_detected():
-            rt = self.reorganize_trajectories() # rt = reorganized_trajectories
+            rt = self.reorganize_trajectories()
         frame_count = 0
         for frame in self.get_frames( stage='"Saving Video"'):
             if self.is_detected():
@@ -134,15 +132,12 @@ class InputVideo:
     def update_progress(self, call):
         self.progress_call = call
 
-    def display_frame_call(self, call):
-        self.display_frame_call = call
-
     def __str__(self):
         return self.video_path
-        
+    
+    display_frame = update_frames_queue # Un Alias para simplificar la logica código
 
 if __name__ == "__main__":
     input_video = InputVideo("../../../videos/video1_30s_sift_estabilizado_filtrado.mp4")
     frame = input_video.get_frames()
-    input_video.display_frames(frame)
     

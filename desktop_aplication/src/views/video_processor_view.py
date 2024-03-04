@@ -1,11 +1,17 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QComboBox 
-from PyQt5.QtWidgets import QPushButton, QFileDialog, QLabel, QGraphicsScene
-from PyQt5.QtWidgets import QMessageBox, QGraphicsPixmapItem, QGraphicsView
-from .gps_reference_dialog import GPSReferenceDialog, array_to_pixmap
-from PyQt5.QtCore import Qt, pyqtSignal
+import tkinter as tk
+from tkinter import filedialog, messagebox
+import customtkinter as ctk
+from PIL import Image, ImageTk
+from .gps_reference_dialog import GPSReferenceDialog
+import numpy as np
+import cv2
 
-class VideoProcessorView(QWidget):
-    progress_changed = pyqtSignal(int)
+class VideoProcessorView(ctk.CTk):
+
+    APP_NAME = "RastreoAéreo: Video Processor"
+    WIDTH = 800
+    HEIGHT = 800
+
     def __init__(self, aligners, detectors, aligner_filters, trajectory_filters):
         super().__init__()
 
@@ -19,112 +25,121 @@ class VideoProcessorView(QWidget):
         self.image_array = None
         self.input_video_path = None
 
-        self.initUI()
+        self.setup_ui()
 
-    def initUI(self):
-        # Main layout
-        main_layout = QVBoxLayout(self)
 
-        # Top layout with two sections
-        top_layout = QHBoxLayout()
+    def setup_ui(self):
+        ctk.set_appearance_mode("dark")  
+        ctk.set_default_color_theme("blue") 
 
-        # Two sections in the top layout
-        top_left_container = self.add_top_left_widgets()
-        
-        top_right_layout = QVBoxLayout()
-        self.add_top_right_widgets(top_right_layout)
+        self.title(VideoProcessorView.APP_NAME)
+        self.geometry(f"{VideoProcessorView.WIDTH}x{VideoProcessorView.HEIGHT}")
+        self.font = 'Roboto'
 
-        # Add the top left and top right layouts to the top layout
-        top_layout.addWidget(top_left_container, alignment=Qt.AlignTop)
-        top_layout.addLayout(top_right_layout)
+        # Layout Configuration
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
-        # Bottom layout
-        bottom_layout = QVBoxLayout()
+        # ============ Frame Setup ============
+        # Frame for buttons and dropdowns
+        self.frame_left = ctk.CTkFrame(master=self, width=200, corner_radius=0)
+        self.frame_left.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+        self.frame_left.grid_propagate(False)
 
-        self.add_bottom_widgets(bottom_layout)
+        # Frame for image display
+        self.frame_right = ctk.CTkFrame(master=self, corner_radius=0)
+        self.frame_right.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
+        self.frame_right.grid_rowconfigure(0, weight=1)
+        self.frame_right.grid_columnconfigure(0, weight=1)
 
-        # Add the top and bottom layouts to the main layout
-        main_layout.addLayout(top_layout)
-        main_layout.addLayout(bottom_layout)
-        
-        self.setGeometry(300, 100, 1280, 720)
-        
-        self.setLayout(main_layout)
-        self.setWindowTitle("RastreoAéreo: Video Processor")
-        self.show()
+        # Frame for some text or additional controls
+        self.frame_bottom = ctk.CTkFrame(master=self, height=100, corner_radius=0)
+        self.frame_bottom.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
+        self.frame_bottom.grid_propagate(False)
 
-    def add_top_left_widgets(self):
+        # ============ Frame Left Components ============
+        self.add_top_left_widgets(self.frame_left)
 
-        top_left_container = QWidget()
-        layout = QVBoxLayout(top_left_container)
+        # ============ Frame Right Components ============
+        self.add_top_right_widgets(self.frame_right)
 
-        self.select_video_button = QPushButton("Select Video", self)
-        layout.addWidget(self.select_video_button)
+        # ============ Frame Bottom Components ============
+        self.add_bottom_widgets(self.frame_bottom)
+    
+    def add_top_left_widgets(self, frame):
+        self.select_video_button = ctk.CTkButton(frame, text="Select Video")
+        self.select_video_button.pack(pady=5 , fill="x", padx=(20, 20))
 
-        self.select_points_button = QPushButton("Select Coordinates for Reference", self)
-        self.select_points_button.clicked.connect(self.select_points_on_image)
-        layout.addWidget(self.select_points_button)
+        self.select_points_button = ctk.CTkButton(frame, text="Select Coordinates for Reference")
+        self.select_points_button.pack(pady=5 , fill="x", padx=(20, 20))
+        self.select_points_button.configure(command=self.select_points_on_image)
 
-        self.aligner_dropdown = QComboBox(self)
-        self.aligner_dropdown.addItems(["None"] + self.parse_to_string(self.aligners))
-        layout.addWidget(QLabel("Select Aligner:"))
-        layout.addWidget(self.aligner_dropdown)
+        self.aligner_dropdown_title, self.aligner_dropdown = self.configure_dropdown(
+            frame, self.aligners, title="Select Aligner:"
+        )
+        self.aligner_dropdown_title.pack(pady=(10, 0), padx=(20, 20), anchor="w")
+        self.aligner_dropdown.pack(pady=2, padx=(20, 20), fill="x")
 
-        self.aligner_filter_dropdown = QComboBox(self)
-        self.aligner_filter_dropdown.addItems(["None"] + self.parse_to_string(self.aligner_filters))
-        layout.addWidget(QLabel("Select Aligner Filter:"))
-        layout.addWidget(self.aligner_filter_dropdown)
+        self.aligner_filter_title, self.aligner_filter_dropdown = self.configure_dropdown(
+            frame, self.aligner_filters, title="Select Aligner Filter:"
+        )
+        self.aligner_filter_title.pack(pady=(10, 0), padx=(20, 20), anchor="w")
+        self.aligner_filter_dropdown.pack(pady=2, padx=(20, 20), fill="x")
 
-        self.detector_dropdown = QComboBox(self)
-        self.detector_dropdown.addItems(["None"] + self.parse_to_string(self.detectors))
-        layout.addWidget(QLabel("Select Trajectory Extractor:"))
-        layout.addWidget(self.detector_dropdown)
+        self.detector_dropdown_title, self.detector_dropdown = self.configure_dropdown(
+            frame, self.detectors, title="Select Trajectory Extractor:"
+        )
+        self.detector_dropdown_title.pack(pady=(10, 0), padx=(20, 20), anchor="w")
+        self.detector_dropdown.pack(pady=2, padx=(20, 20), fill="x")
 
-        self.trajectory_filter_dropdown = QComboBox(self)
-        self.trajectory_filter_dropdown.addItems(["None"] + self.parse_to_string(self.trajectory_filters))
-        layout.addWidget(QLabel("Select Trajectory Extractor Filter:"))
-        layout.addWidget(self.trajectory_filter_dropdown)
+        self.trajectory_filter_title, self.trajectory_filter_dropdown = self.configure_dropdown(
+            frame, self.trajectory_filters, title="Select Trajectory Extractor Filter:"
+        )
+        self.trajectory_filter_title.pack(pady=(10, 0), padx=(20, 20), anchor="w")
+        self.trajectory_filter_dropdown.pack(pady=2, padx=(20, 20), fill="x")
 
-        self.process_video_button = QPushButton("Process Video", self)
-        layout.addWidget(self.process_video_button)
+        self.process_video_button = ctk.CTkButton(frame, text="Process Video")
+        self.process_video_button.pack(pady=5 , fill="x", padx=(20, 20))
 
-        self.save_transformations_button = QPushButton("Export Video Transformations", self)
-        layout.addWidget(self.save_transformations_button)
-        self.save_transformations_button.setEnabled(False)
+        self.save_transformations_button = ctk.CTkButton(frame, text="Export Video Transformations")
+        self.save_transformations_button.pack(pady=5 , fill="x", padx=(20, 20))
+        self.save_transformations_button.configure(state=ctk.DISABLED)
 
-        self.save_trajectories_button = QPushButton("Export Trajectories", self)
-        layout.addWidget(self.save_trajectories_button)
-        self.save_trajectories_button.setEnabled(False)
+        self.save_trajectories_button = ctk.CTkButton(frame, text="Export Trajectories")
+        self.save_trajectories_button.pack(pady=5 , fill="x", padx=(20, 20))
+        self.save_trajectories_button.configure(state=ctk.DISABLED)
 
-        self.save_video_button = QPushButton("Save Video with Results", self)
-        layout.addWidget(self.save_video_button)
-        self.save_video_button.setEnabled(False)
+        self.save_video_button = ctk.CTkButton(frame, text="Save Video with Results")
+        self.save_video_button.pack(pady=5 , fill="x", padx=(20, 20))
+        self.save_video_button.configure(state=ctk.DISABLED)
+    
+    def add_top_right_widgets(self, frame):
+        self.image_container = tk.Label(frame) 
+        self.image_container.pack(padx=1, pady=1)
 
-        # Set a maximum height for the container widget
-        top_left_container.setMaximumHeight(550)
-        top_left_container.setMinimumHeight(400)
+    def add_bottom_widgets(self, frame):
+        self.selected_video_label = ctk.CTkLabel(frame, text="No video selected", anchor="w")
+        self.selected_video_label.pack(pady=5, padx=10)
 
-        return top_left_container
+        self.progress_var = tk.StringVar()
+        self.progress_label = ctk.CTkLabel(frame, text="Progress: 0%", textvariable= self.progress_var, anchor="w")
+        self.progress_label.pack(pady=5, padx=10)
 
-    def add_top_right_widgets(self, layout):
-        self.scene = QGraphicsScene(self)
-        self.pixmap_item = QGraphicsPixmapItem(array_to_pixmap(self.image_array))
-        self.scene.addItem(self.pixmap_item)
-        self.graphics_view = QGraphicsView(self.scene)
-        layout.addWidget(self.graphics_view)
+    def configure_dropdown(self, frame, options, title="Select Option:"):
+        title = ctk.CTkLabel(frame, text=title, font=(self.font, 15))
+        dropdown_options = ["None"] + self.parse_to_string(options)
+        dropdown = ctk.CTkOptionMenu(frame, values=dropdown_options)
 
-    def add_bottom_widgets(self, layout):
-        self.selected_video_label = QLabel("No video selected", self)
-        layout.addWidget(self.selected_video_label)
-
-        self.progress_label = QLabel("Progress: 0%", self)
-        layout.addWidget(self.progress_label)
-
+        return title, dropdown
+    
+    def parse_to_string(self, elements):
+        return list(map(str, elements))
+    
     def get_user_input(self):
-        selected_aligner = self.get_selected_object(self.aligners, self.aligner_dropdown.currentText())
-        selected_detector = self.get_selected_object(self.detectors, self.detector_dropdown.currentText())
-        selected_aligner_filter = self.get_selected_object(self.aligner_filters, self.aligner_filter_dropdown.currentText())
-        selected_trajectory_filter = self.get_selected_object(self.trajectory_filters, self.trajectory_filter_dropdown.currentText())
+        selected_aligner = self.get_selected_object(self.aligners, self.aligner_dropdown.get())
+        selected_detector = self.get_selected_object(self.detectors, self.detector_dropdown.get())
+        selected_aligner_filter = self.get_selected_object(self.aligner_filters, self.aligner_filter_dropdown.get())
+        selected_trajectory_filter = self.get_selected_object(self.trajectory_filters, self.trajectory_filter_dropdown.get())
         
         return {
             "aligner": selected_aligner,
@@ -152,60 +167,80 @@ class VideoProcessorView(QWidget):
 
         reference_image = self.input_video.get_reference_frame()
 
-        dialog = GPSReferenceDialog(image_array = reference_image)
-        dialog.exec_()
+        dialog = GPSReferenceDialog(image_array = reference_image, call= self.set_reference_points)
+        dialog.grab_set()
 
-        if not dialog.coordinates_mapping_is_empty():
-            self.reference_points = dialog.get_coordinates_mapping()
-            print(self.reference_points)
+    def set_reference_points(self, reference_points):
+        self.reference_points = reference_points
+        print(self.reference_points)
     
     def enable_save_results(self):
-        self.save_transformations_button.setEnabled(True)
-        self.save_trajectories_button.setEnabled(True)
-        self.save_video_button.setEnabled(True)
+        self.save_transformations_button.configure(state=ctk.NORMAL)
+        self.save_trajectories_button.configure(state=ctk.NORMAL)
+        self.save_video_button.configure(state=ctk.NORMAL)
+        self.process_video_button.configure(state=ctk.NORMAL)
+        self.select_points_button.configure(state=ctk.NORMAL)
+        self.select_video_button.configure(state=ctk.NORMAL)
 
-    def set_progress(self, value, stage):
-        if self.progress != value:
-            self.progress = value
-            self.progress_changed.emit(value, stage)  # Emit the signal
+    def disable_save_results(self):
+        self.save_transformations_button.configure(state=ctk.DISABLED)
+        self.save_trajectories_button.configure(state=ctk.DISABLED)
+        self.save_video_button.configure(state=ctk.DISABLED)
+        self.process_video_button.configure(state=ctk.DISABLED)
+        self.select_points_button.configure(state=ctk.DISABLED)
+        self.select_video_button.configure(state=ctk.DISABLED)
 
     def update_progress(self, progress, stage):
-        self.progress_label.setText(f"Progress: {progress}% - {stage}")
-
-    def update_image(self, image_array):
-        self.image_array = image_array
-        self.pixmap_item.setPixmap(array_to_pixmap(self.image_array))
+        self.progress_var.set(f"Progress: {progress}% - {stage}")
+    
+    def update_image(self):
+        if not self.input_video.frames_queue.empty():
+            image_array = self.input_video.frames_queue.get()
+            image_array = Image.fromarray(image_array)
+            image_array = ImageTk.PhotoImage(image_array)
+            self.image_container.configure(image = image_array)
+            self.image_container.image = image_array  # Keep a reference! dont ask just do it or else >:( (3 days of debugging to find this out)
+        self.after(30, self.update_image)  # Adjust delay as needed
+        
 
     def select_video(self, set_input_video):
-        self.input_video_path, _ = QFileDialog.getOpenFileName(self, "Select Video", "", "Video Files (*.mp4 *.avi)")
+        self.input_video_path = filedialog.askopenfilename(
+            title = "Select Video",
+            filetypes = [("Video Files", "*.mp4 *.avi")]
+        )
         if self.input_video_path:
-            self.selected_video_label.setText(self.input_video_path)
+            self.selected_video_label.configure(text = self.input_video_path)
             self.input_video = set_input_video(self.input_video_path)
-    
+
     def export_csv_dialog(self, format, file_name="results"):
-        file_path, _ = QFileDialog.getSaveFileName(self, "Export CSV file", file_name, "CSV Files (*.csv)")
+        file_path = filedialog.asksaveasfilename(
+            defaultextension =".csv",
+            filetypes =[("CSV Files", "*.csv")],
+            title ="Export CSV file",
+            initialfile = file_name
+        )
         if file_path:
             format(output_path = file_path)
 
     def save_video_dialog(self, format, file_name="tracked_video"):
-        file_path, _ = QFileDialog.getSaveFileName(self, "Save Video File", file_name, "Video Files (*.mp4 *.avi)")
+        file_path = filedialog.asksaveasfilename(
+            defaultextension =".csv",
+            filetypes =[("Video Files", "*.mp4 ")],
+            title ="Save Video File",
+            initialfile = file_name
+        )
         if file_path:
             format(output_path = file_path)
-
-    def parse_to_string(self, elements):
-        return list(map(str, elements))
     
     def clear_dropdowns(self):
-        self.aligner_dropdown.setCurrentIndex(0)
-        self.aligner_filter_dropdown.setCurrentIndex(0)
-        self.detector_dropdown.setCurrentIndex(0)
-        self.trajectory_filter_dropdown.setCurrentIndex(0)
+        self.aligner_dropdown.set("None")
+        self.aligner_filter_dropdown.set("None")
+        self.detector_dropdown.set("None")
+        self.trajectory_filter_dropdown.set("None")
     
     def show_error_dialog(self, text):
-        error_dialog = QMessageBox()
-        error_dialog.setIcon(QMessageBox.Critical)
-        error_dialog.setText(text)
-        error_dialog.setWindowTitle("Error")
-        error_dialog.exec_() 
-    
-    
+        messagebox.showerror("An error occurred", text)
+
+if __name__ == "__main__":
+    app = VideoProcessorView()
+    app.mainloop()

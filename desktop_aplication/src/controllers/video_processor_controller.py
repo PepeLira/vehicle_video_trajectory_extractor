@@ -1,23 +1,25 @@
 from models.input_video import InputVideo
 from .controller_helper import ControllerHelper
 import csv
+import threading
 
 class VideoProcessorController:
     def __init__(self, ui_view, video_processor):
         self._ui_view = ui_view
         self._video_processor = video_processor
         self.input_video = None
-        self._ui_view.progress_changed.connect(self._ui_view.update_progress)
         self.event_listener()
 
     def event_listener(self):
-        self._ui_view.select_video_button.clicked.connect(self.select_video)
-        self._ui_view.process_video_button.clicked.connect(self.start_processing)
-        self._ui_view.save_transformations_button.clicked.connect(self.export_transformations_csv)
-        self._ui_view.save_trajectories_button.clicked.connect(self.export_trajectories_csv)
-        self._ui_view.save_video_button.clicked.connect(self.save_video)
+        print("Event listener")
+        self._ui_view.select_video_button.configure(command = self.select_video)
+        self._ui_view.process_video_button.configure(command = self.start_processing)
+        self._ui_view.save_transformations_button.configure(command = self.export_transformations_csv)
+        self._ui_view.save_trajectories_button.configure(command = self.export_trajectories_csv)
+        self._ui_view.save_video_button.configure(command = self.save_video)
     
     def start_processing(self):
+        self._ui_view.disable_save_results()
         self.set_parameters()
         
         if self._ui_view.input_video_path is None:
@@ -26,15 +28,19 @@ class VideoProcessorController:
         if self._video_processor.aligner is None and self._video_processor.detector is None:
             self._ui_view.show_error_dialog("An aligner or a detector must be set before processing video")
             return
-        
-        self.trajectories, self.affine_transformations = self._video_processor.process_video(self.input_video)
-        reference_points = self._ui_view.reference_points
 
-        if len(reference_points) >= 3:
-            self.trajectories = ControllerHelper.add_meters_2_trajectory(reference_points, self.trajectories)
-        
+        def process_video():
+            self.trajectories, self.affine_transformations = self._video_processor.process_video(self.input_video)
+            reference_points = self._ui_view.reference_points
 
-        self._ui_view.enable_save_results() # Processing Finished, enable save results buttons
+            if len(reference_points) >= 3:
+                self.trajectories = ControllerHelper.add_meters_2_trajectory(reference_points, self.trajectories)
+            
+            self._ui_view.enable_save_results() # Processing Finished, enable save results buttons
+
+            
+        threading.Thread(target=process_video).start()
+        self._ui_view.update_image()
 
     def set_parameters(self):
         parameters = self._ui_view.get_user_input()
@@ -50,6 +56,7 @@ class VideoProcessorController:
                 self._video_processor.add_trajectory_extractor_filter(parameters["trajectory_filter"])
 
     def select_video(self):
+        print("Selecting video")
         self._ui_view.clear_dropdowns()
         self._ui_view.select_video(self.set_input_video)
 
@@ -60,12 +67,13 @@ class VideoProcessorController:
         self._ui_view.export_csv_dialog(self.record_trajectories_csv, file_name="trajectories")
     
     def save_video(self):
-        self._ui_view.save_video_dialog(self.input_video.save_processed_video, file_name="tracked_video")
+        def save_video_task():
+            self._ui_view.save_video_dialog(self.input_video.save_processed_video, file_name="tracked_video")
+        threading.Thread(target=save_video_task).start()    
     
     def set_input_video(self, input_video_path):
         self.input_video = InputVideo(input_video_path)
         self.input_video.update_progress(self._ui_view.update_progress)
-        self.input_video.display_frame_call(self._ui_view.update_image)
         return self.input_video
         
     def record_trajectories_csv(self, output_path="trajectories.csv"):
