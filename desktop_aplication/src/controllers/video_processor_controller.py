@@ -74,7 +74,7 @@ class VideoProcessorController:
     
     def save_video(self):
         def save_video_task():
-            self._ui_view.save_video_dialog(self.input_video.save_processed_video, file_name="tracked_video")
+            self._ui_view.save_video_dialog(self.input_video.save_processed_video, file_name="tracked_video.mp4")
         threading.Thread(target=save_video_task).start()    
     
     def set_input_video(self, input_video_path):
