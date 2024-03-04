@@ -1,9 +1,17 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QPushButton, QFileDialog, QLabel
+import tkinter as tk
+from tkinter import filedialog, messagebox
+import customtkinter as ctk
+from PIL import Image, ImageTk
 from .gps_reference_dialog import GPSReferenceDialog
-from PyQt5.QtCore import pyqtSignal
+import numpy as np
+import cv2
 
-class VideoProcessorView(QWidget):
-    progress_changed = pyqtSignal(int)
+class VideoProcessorView(ctk.CTk):
+
+    APP_NAME = "RastreoAéreo: Video Processor"
+    WIDTH = 800
+    HEIGHT = 800
+
     def __init__(self, aligners, detectors, aligner_filters, trajectory_filters):
         super().__init__()
 
@@ -14,73 +22,137 @@ class VideoProcessorView(QWidget):
         self.input_video = None
         self.reference_points = []
         self.progress = 0
-
-        self.initUI()
-
-    def initUI(self):
-        # Layout
-        layout = QVBoxLayout(self)
-
+        self.image_array = None
         self.input_video_path = None
-        self.setGeometry(300, 100, 400, 400)
-        
-        self.select_video_button = QPushButton("Select Video", self)
-        layout.addWidget(self.select_video_button)
 
-        self.select_points_button = QPushButton("Select Coordinates for Reference", self)
-        self.select_points_button.clicked.connect(self.select_points_on_image)
-        layout.addWidget(self.select_points_button)
+        self.setup_ui()
 
-        self.aligner_dropdown = QComboBox(self)
-        self.aligner_dropdown.addItems(["None"] + self.parse_to_string(self.aligners))
-        layout.addWidget(QLabel("Select Aligner:"))
-        layout.addWidget(self.aligner_dropdown)
 
-        self.aligner_filter_dropdown = QComboBox(self)
-        self.aligner_filter_dropdown.addItems(["None"] + self.parse_to_string(self.aligner_filters))
-        layout.addWidget(QLabel("Select Aligner Filter:"))
-        layout.addWidget(self.aligner_filter_dropdown)
+    def setup_ui(self):
+        ctk.set_appearance_mode("dark")  
+        ctk.set_default_color_theme("blue") 
 
-        self.detector_dropdown = QComboBox(self)
-        self.detector_dropdown.addItems(["None"] + self.parse_to_string(self.detectors))
-        layout.addWidget(QLabel("Select Trajectory Extractor:"))
-        layout.addWidget(self.detector_dropdown)
+        self.title(VideoProcessorView.APP_NAME)
+        self.geometry(f"{VideoProcessorView.WIDTH}x{VideoProcessorView.HEIGHT}")
+        self.font = 'Roboto'
 
-        self.trajectory_filter_dropdown = QComboBox(self)
-        self.trajectory_filter_dropdown.addItems(["None"] + self.parse_to_string(self.trajectory_filters))
-        layout.addWidget(QLabel("Select Trajectory Extractor Filter:"))
-        layout.addWidget(self.trajectory_filter_dropdown)
+        # Layout Configuration
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
-        self.process_video_button = QPushButton("Process Video", self)
-        layout.addWidget(self.process_video_button)
+        # ============ Frame Setup ============
+        # Frame for buttons and dropdowns
+        self.frame_left = ctk.CTkFrame(master=self, width=200, corner_radius=0)
+        self.frame_left.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+        self.frame_left.grid_propagate(False)
 
-        self.save_transformations_button = QPushButton("Export Video Transformations", self)
-        layout.addWidget(self.save_transformations_button)
-        self.save_transformations_button.setEnabled(False)
+        # Frame for image display
+        self.frame_right = ctk.CTkFrame(master=self, corner_radius=0)
+        self.frame_right.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
+        self.frame_right.grid_rowconfigure(0, weight=1)
+        self.frame_right.grid_columnconfigure(0, weight=1)
 
-        self.save_trajectories_button = QPushButton("Export Trajectories", self)
-        layout.addWidget(self.save_trajectories_button)
-        self.save_trajectories_button.setEnabled(False)
+        # Frame for some text or additional controls
+        self.frame_bottom = ctk.CTkFrame(master=self, height=100, corner_radius=0)
+        self.frame_bottom.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
+        self.frame_bottom.grid_propagate(False)
 
-        self.save_video_button = QPushButton("Save Video with Results", self)
-        layout.addWidget(self.save_video_button)
-        self.save_video_button.setEnabled(False)
+        # ============ Frame Left Components ============
+        self.add_top_left_widgets(self.frame_left)
 
-        self.selected_video_label = QLabel("No video selected", self)
-        layout.addWidget(self.selected_video_label)
+        # ============ Frame Right Components ============
+        self.add_top_right_widgets(self.frame_right)
 
-        self.progress_label = QLabel("Progress: 0%", self)
-        layout.addWidget(self.progress_label)
-        
-        self.setLayout(layout)
-        self.setWindowTitle("RastreoAéreo: Video Processor")
-        self.show()
+        # ============ Frame Bottom Components ============
+        self.add_bottom_widgets(self.frame_bottom)
+    
+    def add_top_left_widgets(self, frame):
+        self.select_video_button = ctk.CTkButton(frame, text="Select Video")
+        self.select_video_button.pack(pady=5 , fill="x", padx=(20, 20))
 
+        self.select_points_button = ctk.CTkButton(frame, text="Select Coordinates for Reference")
+        self.select_points_button.pack(pady=5 , fill="x", padx=(20, 20))
+        self.select_points_button.configure(command=self.select_points_on_image)
+
+        self.aligner_dropdown_title, self.aligner_dropdown = self.configure_dropdown(
+            frame, self.aligners, title="Select Aligner:"
+        )
+        self.aligner_dropdown_title.pack(pady=(10, 0), padx=(20, 20), anchor="w")
+        self.aligner_dropdown.pack(pady=2, padx=(20, 20), fill="x")
+
+        self.aligner_filter_title, self.aligner_filter_dropdown = self.configure_dropdown(
+            frame, self.aligner_filters, title="Select Aligner Filter:"
+        )
+        self.aligner_filter_title.pack(pady=(10, 0), padx=(20, 20), anchor="w")
+        self.aligner_filter_dropdown.pack(pady=2, padx=(20, 20), fill="x")
+
+        self.detector_dropdown_title, self.detector_dropdown = self.configure_dropdown(
+            frame, self.detectors, title="Select Trajectory Extractor:"
+        )
+        self.detector_dropdown_title.pack(pady=(10, 0), padx=(20, 20), anchor="w")
+        self.detector_dropdown.pack(pady=2, padx=(20, 20), fill="x")
+
+        self.trajectory_filter_title, self.trajectory_filter_dropdown = self.configure_dropdown(
+            frame, self.trajectory_filters, title="Select Trajectory Extractor Filter:"
+        )
+        self.trajectory_filter_title.pack(pady=(10, 0), padx=(20, 20), anchor="w")
+        self.trajectory_filter_dropdown.pack(pady=2, padx=(20, 20), fill="x")
+
+        self.process_video_button = ctk.CTkButton(frame, text="Process Video")
+        self.process_video_button.pack(pady=5 , fill="x", padx=(20, 20))
+
+        self.save_transformations_button = ctk.CTkButton(frame, text="Export Video Transformations")
+        self.save_transformations_button.pack(pady=5 , fill="x", padx=(20, 20))
+        self.save_transformations_button.configure(state=ctk.DISABLED)
+
+        self.save_trajectories_button = ctk.CTkButton(frame, text="Export Trajectories")
+        self.save_trajectories_button.pack(pady=5 , fill="x", padx=(20, 20))
+        self.save_trajectories_button.configure(state=ctk.DISABLED)
+
+        self.save_video_button = ctk.CTkButton(frame, text="Save Video with Results")
+        self.save_video_button.pack(pady=5 , fill="x", padx=(20, 20))
+        self.save_video_button.configure(state=ctk.DISABLED)
+    
+    def add_top_right_widgets(self, frame):
+        self.image_container = tk.Canvas(frame) 
+        self.image_container.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, anchor="center")
+
+        # Scrollbars that operate on the canvas
+        self.v_scrollbar = tk.Scrollbar(self.image_container, orient="vertical", command=self.image_container.yview)
+        self.v_scrollbar.pack(side=tk.RIGHT, fill="y")
+        self.h_scrollbar = tk.Scrollbar(self.image_container, orient="horizontal", command=self.image_container.xview)
+        self.h_scrollbar.pack(side=tk.BOTTOM, fill="x")
+
+        self.image_container.configure(yscrollcommand=self.v_scrollbar.set, xscrollcommand=self.h_scrollbar.set)
+        self.image_container.bind("<Configure>", self.on_canvas_configure)
+
+    def add_bottom_widgets(self, frame):
+        self.selected_video_label = ctk.CTkLabel(frame, text="No video selected", anchor="w")
+        self.selected_video_label.pack(pady=5, padx=10)
+
+        self.progress_var = tk.StringVar()
+        self.progress_label = ctk.CTkLabel(frame, text="Progress: 0%", textvariable= self.progress_var, anchor="w")
+        self.progress_label.pack(pady=5, padx=10)
+
+    def on_canvas_configure(self, event):
+        # Update the scroll region and re-center the image
+        self.image_container.config(scrollregion=self.image_container.bbox("all"))
+
+    def configure_dropdown(self, frame, options, title="Select Option:"):
+        title = ctk.CTkLabel(frame, text=title, font=(self.font, 15))
+        dropdown_options = ["None"] + self.parse_to_string(options)
+        dropdown = ctk.CTkOptionMenu(frame, values=dropdown_options)
+
+        return title, dropdown
+    
+    def parse_to_string(self, elements):
+        return list(map(str, elements))
+    
     def get_user_input(self):
-        selected_aligner = self.get_selected_object(self.aligners, self.aligner_dropdown.currentText())
-        selected_detector = self.get_selected_object(self.detectors, self.detector_dropdown.currentText())
-        selected_aligner_filter = self.get_selected_object(self.aligner_filters, self.aligner_filter_dropdown.currentText())
-        selected_trajectory_filter = self.get_selected_object(self.trajectory_filters, self.trajectory_filter_dropdown.currentText())
+        selected_aligner = self.get_selected_object(self.aligners, self.aligner_dropdown.get())
+        selected_detector = self.get_selected_object(self.detectors, self.detector_dropdown.get())
+        selected_aligner_filter = self.get_selected_object(self.aligner_filters, self.aligner_filter_dropdown.get())
+        selected_trajectory_filter = self.get_selected_object(self.trajectory_filters, self.trajectory_filter_dropdown.get())
         
         return {
             "aligner": selected_aligner,
@@ -102,49 +174,110 @@ class VideoProcessorView(QWidget):
         return None
     
     def select_points_on_image(self):
-        # Raise an error if no video is selected
         if self.input_video is None:
-            raise ValueError("No video selected")
+            self.show_error_dialog("No video selected")
+            return
 
         reference_image = self.input_video.get_reference_frame()
 
-        dialog = GPSReferenceDialog(image_array = reference_image)
-        dialog.exec_()
+        dialog = GPSReferenceDialog(image_array = reference_image, call= self.set_reference_points)
+        dialog.grab_set()
 
-        if not dialog.coordinates_mapping_is_empty():
-            self.reference_points = dialog.get_coordinates_mapping()
-            print(self.reference_points)
+    def set_reference_points(self, reference_points):
+        self.reference_points = reference_points
+        print(self.reference_points)
     
     def enable_save_results(self):
-        self.save_transformations_button.setEnabled(True)
-        self.save_trajectories_button.setEnabled(True)
-        self.save_video_button.setEnabled(True)
+        self.save_transformations_button.configure(state=ctk.NORMAL)
+        self.save_trajectories_button.configure(state=ctk.NORMAL)
+        self.save_video_button.configure(state=ctk.NORMAL)
+        self.process_video_button.configure(state=ctk.NORMAL)
+        self.select_points_button.configure(state=ctk.NORMAL)
+        self.select_video_button.configure(state=ctk.NORMAL)
 
-    def set_progress(self, value, stage):
-        if self.progress != value:
-            self.progress = value
-            self.progress_changed.emit(value, stage)  # Emit the signal
+    def disable_save_results(self):
+        self.save_transformations_button.configure(state=ctk.DISABLED)
+        self.save_trajectories_button.configure(state=ctk.DISABLED)
+        self.save_video_button.configure(state=ctk.DISABLED)
+        self.process_video_button.configure(state=ctk.DISABLED)
+        self.select_points_button.configure(state=ctk.DISABLED)
+        self.select_video_button.configure(state=ctk.DISABLED)
 
     def update_progress(self, progress, stage):
-        self.progress_label.setText(f"Progress: {progress}% - {stage}")
+        self.progress_var.set(f"Progress: {progress}% - {stage}")
+    
+    def update_image(self):
+        if not self.input_video.frames_queue.empty():
+            image_array = self.input_video.frames_queue.get()
+            image_array = Image.fromarray(image_array)
+            image_array = ImageTk.PhotoImage(image_array)
+
+            img_width = image_array.width()
+            img_height = image_array.height()
+
+            max_width = self.winfo_screenwidth()
+            max_height = self.winfo_screenheight()
+            window_width = min(img_width, max_width)
+            window_height = min(img_height, max_height)
+
+            self.image_container.create_image(0,0, image = image_array, anchor="nw")
+            self.image_container.image = image_array  # Keep a reference! dont ask just do it or else >:( (3 days of debugging to find this out)
+
+            self.image_container.config(scrollregion=self.image_container.bbox("all"))
+        self.after(30, self.update_image)  # Adjust delay as needed
+
+    def update_image_position(self):
+        # Calculate the center position
+        self.image_container.config
+        canvas_width = self.image_container.winfo_width()
+        canvas_height = self.image_container.winfo_height()
+        img_width = self.tk_image.width()
+        img_height = self.tk_image.height()
+        x = (canvas_width - img_width) // 2
+        y = (canvas_height - img_height) // 2
+
+        # Move the image to the center
+        self.image_container.coords(self.image_on_canvas, x, y)
+        
 
     def select_video(self, set_input_video):
-        self.input_video_path, _ = QFileDialog.getOpenFileName(self, "Select Video", "", "Video Files (*.mp4 *.avi)")
+        self.input_video_path = filedialog.askopenfilename(
+            title = "Select Video",
+            filetypes = [("Video Files", "*.mp4 *.avi")]
+        )
         if self.input_video_path:
-            self.selected_video_label.setText(self.input_video_path)
+            self.selected_video_label.configure(text = f"Selected Video: {self.input_video_path}")
             self.input_video = set_input_video(self.input_video_path)
-    
+
     def export_csv_dialog(self, format, file_name="results"):
-        file_path, _ = QFileDialog.getSaveFileName(self, "Export CSV file", file_name, "CSV Files (*.csv)")
+        file_path = filedialog.asksaveasfilename(
+            defaultextension =".csv",
+            filetypes =[("CSV Files", "*.csv")],
+            title ="Export CSV file",
+            initialfile = file_name
+        )
         if file_path:
             format(output_path = file_path)
 
     def save_video_dialog(self, format, file_name="tracked_video"):
-        file_path, _ = QFileDialog.getSaveFileName(self, "Save Video File", file_name, "Video Files (*.mp4 *.avi)")
+        file_path = filedialog.asksaveasfilename(
+            defaultextension =".csv",
+            filetypes =[("Video Files", "*.mp4 ")],
+            title ="Save Video File",
+            initialfile = file_name
+        )
         if file_path:
             format(output_path = file_path)
+    
+    def clear_dropdowns(self):
+        self.aligner_dropdown.set("None")
+        self.aligner_filter_dropdown.set("None")
+        self.detector_dropdown.set("None")
+        self.trajectory_filter_dropdown.set("None")
+    
+    def show_error_dialog(self, text):
+        messagebox.showerror("An error occurred", text)
 
-    def parse_to_string(self, elements):
-        return list(map(str, elements))
-    
-    
+if __name__ == "__main__":
+    app = VideoProcessorView()
+    app.mainloop()

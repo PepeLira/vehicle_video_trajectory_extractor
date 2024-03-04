@@ -55,4 +55,11 @@ class VideoProcessor:
     
     def add_trajectory_extractor_filter(self, trajectory_extractor_filter):
         self.trajectory_filter_chain.add_filter(trajectory_extractor_filter)
+
+    def clear_parameters(self):
+        self.aligner = None
+        self.detector = None
+        self.aligner_filter_chain.clear_filters()
+        self.trajectory_filter_chain.clear_filters()
+        
     
