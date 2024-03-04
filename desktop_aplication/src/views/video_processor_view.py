@@ -114,8 +114,17 @@ class VideoProcessorView(ctk.CTk):
         self.save_video_button.configure(state=ctk.DISABLED)
     
     def add_top_right_widgets(self, frame):
-        self.image_container = tk.Label(frame) 
-        self.image_container.pack(padx=1, pady=1)
+        self.image_container = tk.Canvas(frame) 
+        self.image_container.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, anchor="center")
+
+        # Scrollbars that operate on the canvas
+        self.v_scrollbar = tk.Scrollbar(self.image_container, orient="vertical", command=self.image_container.yview)
+        self.v_scrollbar.pack(side=tk.RIGHT, fill="y")
+        self.h_scrollbar = tk.Scrollbar(self.image_container, orient="horizontal", command=self.image_container.xview)
+        self.h_scrollbar.pack(side=tk.BOTTOM, fill="x")
+
+        self.image_container.configure(yscrollcommand=self.v_scrollbar.set, xscrollcommand=self.h_scrollbar.set)
+        self.image_container.bind("<Configure>", self.on_canvas_configure)
 
     def add_bottom_widgets(self, frame):
         self.selected_video_label = ctk.CTkLabel(frame, text="No video selected", anchor="w")
@@ -124,6 +133,10 @@ class VideoProcessorView(ctk.CTk):
         self.progress_var = tk.StringVar()
         self.progress_label = ctk.CTkLabel(frame, text="Progress: 0%", textvariable= self.progress_var, anchor="w")
         self.progress_label.pack(pady=5, padx=10)
+
+    def on_canvas_configure(self, event):
+        # Update the scroll region and re-center the image
+        self.image_container.config(scrollregion=self.image_container.bbox("all"))
 
     def configure_dropdown(self, frame, options, title="Select Option:"):
         title = ctk.CTkLabel(frame, text=title, font=(self.font, 15))
@@ -198,9 +211,33 @@ class VideoProcessorView(ctk.CTk):
             image_array = self.input_video.frames_queue.get()
             image_array = Image.fromarray(image_array)
             image_array = ImageTk.PhotoImage(image_array)
-            self.image_container.configure(image = image_array)
+
+            img_width = image_array.width()
+            img_height = image_array.height()
+
+            max_width = self.winfo_screenwidth()
+            max_height = self.winfo_screenheight()
+            window_width = min(img_width, max_width)
+            window_height = min(img_height, max_height)
+
+            self.image_container.create_image(0,0, image = image_array, anchor="nw")
             self.image_container.image = image_array  # Keep a reference! dont ask just do it or else >:( (3 days of debugging to find this out)
+
+            self.image_container.config(scrollregion=self.image_container.bbox("all"))
         self.after(30, self.update_image)  # Adjust delay as needed
+
+    def update_image_position(self):
+        # Calculate the center position
+        self.image_container.config
+        canvas_width = self.image_container.winfo_width()
+        canvas_height = self.image_container.winfo_height()
+        img_width = self.tk_image.width()
+        img_height = self.tk_image.height()
+        x = (canvas_width - img_width) // 2
+        y = (canvas_height - img_height) // 2
+
+        # Move the image to the center
+        self.image_container.coords(self.image_on_canvas, x, y)
         
 
     def select_video(self, set_input_video):
@@ -209,7 +246,7 @@ class VideoProcessorView(ctk.CTk):
             filetypes = [("Video Files", "*.mp4 *.avi")]
         )
         if self.input_video_path:
-            self.selected_video_label.configure(text = self.input_video_path)
+            self.selected_video_label.configure(text = f"Selected Video: {self.input_video_path}")
             self.input_video = set_input_video(self.input_video_path)
 
     def export_csv_dialog(self, format, file_name="results"):
