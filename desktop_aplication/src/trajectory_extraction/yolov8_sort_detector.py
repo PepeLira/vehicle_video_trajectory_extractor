@@ -4,7 +4,7 @@ import cv2
 from .extensions.sort import Sort
 
 class YOLOv8SortDetector(DetectorStrategy):
-    def __init__(self, source_weights_path="../../../models/cutom_dota.pt", detection_threshold=0.5):
+    def __init__(self, source_weights_path="../../../models/cutom_dota.pt", detection_threshold=0.3):
         super().__init__(source_weights_path, detection_threshold)
         self.model = YOLO(source_weights_path)
         self.trajectories = {}

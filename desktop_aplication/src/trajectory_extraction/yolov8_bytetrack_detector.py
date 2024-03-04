@@ -3,7 +3,7 @@ from ultralytics import YOLO
 import cv2
 
 class YOLOv8ByteTrackDetector(DetectorStrategy):
-    def __init__(self, source_weights_path="../../../models/cutom_dota.pt", detection_threshold=0.8):
+    def __init__(self, source_weights_path="../../../models/cutom_dota.pt", detection_threshold=0.3):
         super().__init__(source_weights_path, detection_threshold)
         self.model = YOLO(source_weights_path)
 
@@ -59,7 +59,6 @@ class YOLOv8ByteTrackDetector(DetectorStrategy):
             frame_count += 1
         cv2.destroyAllWindows()
 
-    
     def get_trajectories(self, detections):
         trajectories = {}
         for i in range(len(detections)):
@@ -83,8 +82,6 @@ class YOLOv8ByteTrackDetector(DetectorStrategy):
     def calculate_tracking_point(self, bbox):
         x1, y1, x2, y2 = bbox
         return ((x1 + x2) / 2, (y1 + y2) / 2)
-
-
     
     def __str__(self):
         return "YOLOv8 + ByteTrack"
