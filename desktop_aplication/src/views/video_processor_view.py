@@ -3,17 +3,27 @@ from tkinter import filedialog, messagebox
 import customtkinter as ctk
 from PIL import Image, ImageTk
 from .gps_reference_dialog import GPSReferenceDialog
+from .custom_file_dialog import CustomFileDialog
 import numpy as np
 import cv2
+
+def get_dpi_scaling():
+    root = tk.Tk()
+    scaling_factor = root.winfo_fpixels('1i') / 72 
+    root.destroy()
+    return scaling_factor*0.75
 
 class VideoProcessorView(ctk.CTk):
 
     APP_NAME = "RastreoAéreo: Video Processor"
-    WIDTH = 800
+    WIDTH = 1200
     HEIGHT = 800
 
     def __init__(self, aligners, detectors, aligner_filters, trajectory_filters):
         super().__init__()
+
+        ctk.set_widget_scaling(get_dpi_scaling())
+        ctk.set_window_scaling(get_dpi_scaling())
 
         self.aligners = aligners
         self.detectors = detectors
@@ -241,32 +251,41 @@ class VideoProcessorView(ctk.CTk):
         
 
     def select_video(self, set_input_video):
-        self.input_video_path = filedialog.askopenfilename(
+        open_file_dialog = CustomFileDialog(
             title = "Select Video",
-            filetypes = [("Video Files", "*.mp4 *.avi")]
+            file_types = [".mp4", ".avi"],
+            mode = "open",
+            on_close=self.open_filedialog_call
         )
+        open_file_dialog.wait_window()
         if self.input_video_path:
             self.selected_video_label.configure(text = f"Selected Video: {self.input_video_path}")
             self.input_video = set_input_video(self.input_video_path)
 
     def export_csv_dialog(self, format, file_name="results"):
-        file_path = filedialog.asksaveasfilename(
-            defaultextension =".csv",
-            filetypes =[("CSV Files", "*.csv")],
+        save_file_dialog = CustomFileDialog(
+            mode="save",
+            file_types =[".csv"],
             title ="Export CSV file",
-            initialfile = file_name
+            initialfile = file_name,
+            on_close=self.save_filedialog_call
         )
-        if file_path:
+        save_file_dialog.wait_window()
+        if self.output_file_path:
+            file_path = self.output_file_path
             format(output_path = file_path)
 
     def save_video_dialog(self, format, file_name="tracked_video"):
-        file_path = filedialog.asksaveasfilename(
-            defaultextension =".csv",
-            filetypes =[("Video Files", "*.mp4 ")],
+        save_file_dialog = CustomFileDialog(
+            mode="save",
+            file_types =[".mp4 "],
             title ="Save Video File",
-            initialfile = file_name
+            initialfile = file_name,
+            on_close=self.save_filedialog_call
         )
-        if file_path:
+        save_file_dialog.wait_window()
+        if self.output_file_path:
+            file_path = self.output_file_path
             format(output_path = file_path)
     
     def clear_dropdowns(self):
@@ -274,6 +293,13 @@ class VideoProcessorView(ctk.CTk):
         self.aligner_filter_dropdown.set("None")
         self.detector_dropdown.set("None")
         self.trajectory_filter_dropdown.set("None")
+
+    def open_filedialog_call(self, file_path):
+        self.input_video_path = file_path
+
+    def save_filedialog_call(self, file_path):
+        self.output_file_path = file_path
+
     
     def show_error_dialog(self, text):
         messagebox.showerror("An error occurred", text)
