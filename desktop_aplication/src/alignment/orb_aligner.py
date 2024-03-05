@@ -132,7 +132,7 @@ if __name__ == "__main__":
         def __str__(self):
             return self.video_path
 
-    input_video = InputVideo("../../../videos/video1_30s_sift_estabilizado_filtrado.mp4")
+    input_video = InputVideo("[Path to video]")
     aligner = OrbAligner()
     aligner.set_affine_transformations(input_video)
     print(aligner.affine_transformations)
