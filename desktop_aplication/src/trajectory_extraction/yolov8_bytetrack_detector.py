@@ -3,7 +3,7 @@ from ultralytics import YOLO
 import cv2
 import os
 
-MODEL_PATH = os.path.join( "..", "..", "models/custom_dota.pt")
+MODEL_PATH = os.path.join( "..", "..", "pretrained_models/custom_dota.pt")
 
 class YOLOv8ByteTrackDetector(DetectorStrategy):
     def __init__(self, source_weights_path=MODEL_PATH, detection_threshold=0.3):
