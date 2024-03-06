@@ -1,6 +1,7 @@
 import cv2
 import queue
 import os
+import threading
 
 def resize_frame(frame, max_width=1440, max_height=810):
     h, w = frame.shape[:2]
@@ -111,30 +112,32 @@ class InputVideo:
         video.release()
 
     def save_processed_video(self, output_path):
-        video = cv2.VideoCapture(self.video_path)
-        fps = video.get(cv2.CAP_PROP_FPS)
-        frame_width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
-        frame_height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))
-        if self.is_detected():
-            print("Saving Video")
-            rt = self.reorganize_trajectories()
-        frame_count = 0
-        for frame in self.get_frames( stage='"Saving Video"'):
+        def process():
+            video = cv2.VideoCapture(self.video_path)
+            fps = video.get(cv2.CAP_PROP_FPS)
+            frame_width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
+            frame_height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))
             if self.is_detected():
-                for x, y, id in zip(rt[frame_count]["x"], rt[frame_count]["y"], rt[frame_count]["ids"]):
-                    cv2.putText(img=frame, text=f"{id}", org=(x, y-6), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=3, color=(0,255,0), thickness=2)
-                    cv2.circle(img=frame, center=(x,y), radius=0, color=(0, 0, 255), thickness=5)
-            out.write(frame)
-            frame_count += 1
-        if not out.isOpened():
-            print("Error: Could not open video writer")
-        if not video.isOpened():
-            print(f"Error: Could not open video source {self.video_path}")
+                print("Saving Video")
+                rt = self.reorganize_trajectories()
+            frame_count = 0
+            for frame in self.get_frames( stage='"Saving Video"'):
+                if self.is_detected():
+                    for x, y, id in zip(rt[frame_count]["x"], rt[frame_count]["y"], rt[frame_count]["ids"]):
+                        cv2.putText(img=frame, text=f"{id}", org=(x, y-6), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=3, color=(0,255,0), thickness=2)
+                        cv2.circle(img=frame, center=(x,y), radius=0, color=(0, 0, 255), thickness=5)
+                out.write(frame)
+                frame_count += 1
+            if not out.isOpened():
+                print("Error: Could not open video writer")
+            if not video.isOpened():
+                print(f"Error: Could not open video source {self.video_path}")
 
-        out.release()
-        video.release()
+            out.release()
+            video.release()
+        threading.Thread(target=process).start()
         
     def update_progress(self, call):
         self.progress_call = call
