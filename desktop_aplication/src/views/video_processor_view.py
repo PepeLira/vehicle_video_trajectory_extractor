@@ -3,17 +3,30 @@ from tkinter import filedialog, messagebox
 import customtkinter as ctk
 from PIL import Image, ImageTk
 from .gps_reference_dialog import GPSReferenceDialog
+from .custom_file_dialog import CustomFileDialog
 import numpy as np
 import cv2
+
+def get_dpi_scaling():
+    root = tk.Tk()
+    scaling_factor = root.winfo_fpixels('1i') / 72 
+    root.destroy()
+    return scaling_factor
 
 class VideoProcessorView(ctk.CTk):
 
     APP_NAME = "RastreoAéreo: Video Processor"
-    WIDTH = 800
+    WIDTH = 1000
     HEIGHT = 800
 
     def __init__(self, aligners, detectors, aligner_filters, trajectory_filters):
         super().__init__()
+
+        self.geometry(f"{VideoProcessorView.WIDTH}x{VideoProcessorView.HEIGHT}")
+        self.font = 'Roboto'
+        
+        self.scaling_factor = get_dpi_scaling()
+        ctk.set_widget_scaling(self.scaling_factor*0.8)
 
         self.aligners = aligners
         self.detectors = detectors
@@ -33,8 +46,6 @@ class VideoProcessorView(ctk.CTk):
         ctk.set_default_color_theme("blue") 
 
         self.title(VideoProcessorView.APP_NAME)
-        self.geometry(f"{VideoProcessorView.WIDTH}x{VideoProcessorView.HEIGHT}")
-        self.font = 'Roboto'
 
         # Layout Configuration
         self.grid_columnconfigure(1, weight=1)
@@ -241,39 +252,63 @@ class VideoProcessorView(ctk.CTk):
         
 
     def select_video(self, set_input_video):
-        self.input_video_path = filedialog.askopenfilename(
+        self.set_input_video = set_input_video
+        open_file_dialog = CustomFileDialog(
             title = "Select Video",
-            filetypes = [("Video Files", "*.mp4 *.avi")]
+            file_types = [".mp4", ".avi"],
+            mode = "open",
+            on_close=self.open_filedialog_call,
+            scale_factor=self.scaling_factor
         )
-        if self.input_video_path:
-            self.selected_video_label.configure(text = f"Selected Video: {self.input_video_path}")
-            self.input_video = set_input_video(self.input_video_path)
+        open_file_dialog.update()
+        open_file_dialog.grab_set()
 
     def export_csv_dialog(self, format, file_name="results"):
-        file_path = filedialog.asksaveasfilename(
-            defaultextension =".csv",
-            filetypes =[("CSV Files", "*.csv")],
+        self.format = format
+        save_file_dialog = CustomFileDialog(
+            mode="save",
+            file_types =[".csv"],
             title ="Export CSV file",
-            initialfile = file_name
+            initialfile = file_name,
+            on_close=self.save_filedialog_call,
+            scale_factor=self.scaling_factor
         )
-        if file_path:
-            format(output_path = file_path)
+        save_file_dialog.update()
+        save_file_dialog.grab_set()
 
     def save_video_dialog(self, format, file_name="tracked_video"):
-        file_path = filedialog.asksaveasfilename(
-            defaultextension =".csv",
-            filetypes =[("Video Files", "*.mp4 ")],
+        self.format = format
+        save_file_dialog = CustomFileDialog(
+            mode="save",
+            file_types =[".mp4 "],
             title ="Save Video File",
-            initialfile = file_name
+            initialfile = file_name,
+            on_close=self.save_filedialog_call,
+            scale_factor=self.scaling_factor
         )
-        if file_path:
-            format(output_path = file_path)
+        save_file_dialog.update()
+        save_file_dialog.grab_set()
     
     def clear_dropdowns(self):
         self.aligner_dropdown.set("None")
         self.aligner_filter_dropdown.set("None")
         self.detector_dropdown.set("None")
         self.trajectory_filter_dropdown.set("None")
+
+    def open_filedialog_call(self, file_path):
+        self.input_video_path = file_path
+        
+        if self.input_video_path:
+            self.selected_video_label.configure(text = f"Selected Video: {self.input_video_path}")
+            self.input_video = self.set_input_video(self.input_video_path)
+
+    def save_filedialog_call(self, file_path):
+        self.output_file_path = file_path
+        
+        if self.output_file_path:
+            file_path = self.output_file_path
+            self.format(output_path = file_path)
+
     
     def show_error_dialog(self, text):
         messagebox.showerror("An error occurred", text)

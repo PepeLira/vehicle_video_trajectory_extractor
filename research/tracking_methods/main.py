@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 from ultralytics import YOLO
 from sort import Sort
+import os
 
 def resize_frame(frame, max_width=1920, max_height=1080):
     h, w = frame.shape[:2]
@@ -10,8 +11,8 @@ def resize_frame(frame, max_width=1920, max_height=1080):
     return cv2.resize(frame, (new_w, new_h))
 
 if __name__ == '__main__':
-    cap = cv2.VideoCapture("D:/Titulo/Github/vehicle_video_trajectory_extractor/videos/video_sim_30s_movement_estabilizado_filtrado.mp4")
-    model = YOLO("D:/Titulo/Github/vehicle_video_trajectory_extractor/models/cutom_dota.pt")
+    cap = cv2.VideoCapture("[Path to video]")
+    model = YOLO(os.path.join( "..", "..", "pretrained_models/custom_dota.pt"))
     tracker = Sort()
 
     while cap.isOpened():

@@ -73,9 +73,8 @@ class VideoProcessorController:
         self._ui_view.export_csv_dialog(self.record_trajectories_csv, file_name="trajectories")
     
     def save_video(self):
-        def save_video_task():
-            self._ui_view.save_video_dialog(self.input_video.save_processed_video, file_name="tracked_video.mp4")
-        threading.Thread(target=save_video_task).start()    
+        self._ui_view.save_video_dialog(self.input_video.save_processed_video, file_name="tracked_video")
+        
     
     def set_input_video(self, input_video_path):
         self.input_video = InputVideo(input_video_path)
