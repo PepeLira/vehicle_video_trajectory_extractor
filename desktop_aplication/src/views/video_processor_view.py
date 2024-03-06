@@ -260,6 +260,7 @@ class VideoProcessorView(ctk.CTk):
             on_close=self.open_filedialog_call,
             scale_factor=self.scaling_factor
         )
+        open_file_dialog.update()
         open_file_dialog.grab_set()
 
     def export_csv_dialog(self, format, file_name="results"):
@@ -272,6 +273,7 @@ class VideoProcessorView(ctk.CTk):
             on_close=self.save_filedialog_call,
             scale_factor=self.scaling_factor
         )
+        save_file_dialog.update()
         save_file_dialog.grab_set()
 
     def save_video_dialog(self, format, file_name="tracked_video"):
@@ -284,6 +286,7 @@ class VideoProcessorView(ctk.CTk):
             on_close=self.save_filedialog_call,
             scale_factor=self.scaling_factor
         )
+        save_file_dialog.update()
         save_file_dialog.grab_set()
     
     def clear_dropdowns(self):

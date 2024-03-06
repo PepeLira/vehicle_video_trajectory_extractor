@@ -9,6 +9,7 @@ class GPSReferenceDialog(ctk.CTkToplevel):
         super().__init__()
         self.monitor = [m for m in get_monitors() if m.is_primary][0]
         self.title("Image Coordinate Picker")
+        self.geometry("800x600")
         self.image_array = image_array
         self.colors = ['red', 'blue', 'green', 'yellow', 'purple']  # List of colors to cycle through
         self.current_color_index = 0  # Index of the current color

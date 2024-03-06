@@ -15,7 +15,7 @@ class CustomFileDialog(ctk.CTkToplevel):
         else:
             self.file_types = file_types
         self.scale_factor = scale_factor
-        self.geometry("800x600")
+        self.geometry("800x900")
         self.title(title)
         self.initialfile = initialfile
         self.on_close_callback = on_close
@@ -41,7 +41,7 @@ class CustomFileDialog(ctk.CTkToplevel):
         
         # Filename entry (for save mode)
         self.filename_entry = ctk.CTkEntry(self, placeholder_text="Enter filename")
-        self.filename_entry.pack(pady=(5, 0), padx=10, fill='x')
+        self.filename_entry.pack(pady=(5, 0), fill='x')
         self.filename_entry.pack_forget()  # Hide initially
 
         # Listbox and scrollbar for file and directory listing
@@ -75,7 +75,7 @@ class CustomFileDialog(ctk.CTkToplevel):
 
     def update_ui_for_mode(self):
         if self.mode == 'save':
-            self.filename_entry.pack(pady=(5, 0))
+            self.filename_entry.pack(pady=(5, 0), fill='x')
             if self.initialfile:
                 self.filename_entry.insert(0, self.initialfile)
             self.format_combobox.pack_forget()
