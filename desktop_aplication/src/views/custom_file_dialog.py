@@ -22,25 +22,26 @@ class CustomFileDialog(ctk.CTkToplevel):
         self.current_path = os.path.abspath(start_path)
         self.selected_format = self.file_types[0]
         self.mode = mode  # 'open' or 'save'
+        self.font = "Roboto"
         self.create_widgets()
 
     def create_widgets(self):
-
-        self.path_entry = ctk.CTkEntry(self, placeholder_text="Enter path here")
+        self.path_entry = ctk.CTkEntry(self, placeholder_text="Enter path here", font=(self.font, 8*self.scale_factor))
         self.path_entry.pack(pady=(10, 0), padx=10, fill='x')
         self.path_entry.insert(0, self.current_path)
         self.path_entry.bind('<Return>', self.path_entry_updated)  # Update on Enter key
 
-        self.go_up_button = ctk.CTkButton(self, text="Go Up", command=self.go_up_one_level)
+        self.go_up_button = ctk.CTkButton(self, text="Go Up", command=self.go_up_one_level, font=(self.font, 8*self.scale_factor))
         self.go_up_button.pack(pady=(5, 10))
         
         # File format selection (for open mode)
-        self.format_combobox = ctk.CTkComboBox(self, values=self.file_types, command=self.format_selected)
+        self.format_combobox = ctk.CTkComboBox(self, values=self.file_types, command=self.format_selected, 
+                                                font=(self.font, 8*self.scale_factor), dropdown_font=(self.font, 8*self.scale_factor))
         self.format_combobox.set(self.file_types[0])  # Default selection
         self.format_combobox.pack(pady=(5, 0))
         
         # Filename entry (for save mode)
-        self.filename_entry = ctk.CTkEntry(self, placeholder_text="Enter filename")
+        self.filename_entry = ctk.CTkEntry(self, placeholder_text="Enter filename", font=(self.font, 8*self.scale_factor))
         self.filename_entry.pack(pady=(5, 0), fill='x')
         self.filename_entry.pack_forget()  # Hide initially
 
@@ -55,7 +56,7 @@ class CustomFileDialog(ctk.CTkToplevel):
                             self.listbox_frame, 
                             yscrollcommand=self.scrollbar.set, 
                             selectmode=SINGLE, 
-                            font=("Roboto", int(16*self.scale_factor))
+                            font=("Roboto", int(10*self.scale_factor))
                         )
         self.listbox.pack(side="left", fill="both", expand=True)
         self.scrollbar.config(command=self.listbox.yview)
@@ -64,7 +65,7 @@ class CustomFileDialog(ctk.CTkToplevel):
 
         self.update_listbox(self.current_path)
 
-        self.open_button = ctk.CTkButton(self, text="Open", command=self.open_or_save)
+        self.open_button = ctk.CTkButton(self, text="Open", command=self.open_or_save, font=(self.font, 8*self.scale_factor))
         self.open_button.pack(pady=(0, 10))
 
         self.update_ui_for_mode()

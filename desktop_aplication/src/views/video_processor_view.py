@@ -17,7 +17,7 @@ class VideoProcessorView(ctk.CTk):
 
     APP_NAME = "RastreoAéreo: Video Processor"
     WIDTH = 1000
-    HEIGHT = 800
+    HEIGHT = 1200
 
     def __init__(self, aligners, detectors, aligner_filters, trajectory_filters):
         super().__init__()
@@ -78,10 +78,10 @@ class VideoProcessorView(ctk.CTk):
         self.add_bottom_widgets(self.frame_bottom)
     
     def add_top_left_widgets(self, frame):
-        self.select_video_button = ctk.CTkButton(frame, text="Select Video")
+        self.select_video_button = ctk.CTkButton(frame, text="Select Video", font=(self.font, 8*self.scaling_factor))
         self.select_video_button.pack(pady=5 , fill="x", padx=(20, 20))
 
-        self.select_points_button = ctk.CTkButton(frame, text="Select Coordinates for Reference")
+        self.select_points_button = ctk.CTkButton(frame, text="Select Coordinates for Reference", font=(self.font, 8*self.scaling_factor))
         self.select_points_button.pack(pady=5 , fill="x", padx=(20, 20))
         self.select_points_button.configure(command=self.select_points_on_image)
 
@@ -109,18 +109,18 @@ class VideoProcessorView(ctk.CTk):
         self.trajectory_filter_title.pack(pady=(10, 0), padx=(20, 20), anchor="w")
         self.trajectory_filter_dropdown.pack(pady=2, padx=(20, 20), fill="x")
 
-        self.process_video_button = ctk.CTkButton(frame, text="Process Video")
+        self.process_video_button = ctk.CTkButton(frame, text="Process Video", font=(self.font, 8*self.scaling_factor))
         self.process_video_button.pack(pady=5 , fill="x", padx=(20, 20))
 
-        self.save_transformations_button = ctk.CTkButton(frame, text="Export Video Transformations")
+        self.save_transformations_button = ctk.CTkButton(frame, text="Export Video Transformations", font=(self.font, 8*self.scaling_factor))
         self.save_transformations_button.pack(pady=5 , fill="x", padx=(20, 20))
         self.save_transformations_button.configure(state=ctk.DISABLED)
 
-        self.save_trajectories_button = ctk.CTkButton(frame, text="Export Trajectories")
+        self.save_trajectories_button = ctk.CTkButton(frame, text="Export Trajectories", font=(self.font, 8*self.scaling_factor))
         self.save_trajectories_button.pack(pady=5 , fill="x", padx=(20, 20))
         self.save_trajectories_button.configure(state=ctk.DISABLED)
 
-        self.save_video_button = ctk.CTkButton(frame, text="Save Video with Results")
+        self.save_video_button = ctk.CTkButton(frame, text="Save Video with Results", font=(self.font, 8*self.scaling_factor))
         self.save_video_button.pack(pady=5 , fill="x", padx=(20, 20))
         self.save_video_button.configure(state=ctk.DISABLED)
     
@@ -138,11 +138,11 @@ class VideoProcessorView(ctk.CTk):
         self.image_container.bind("<Configure>", self.on_canvas_configure)
 
     def add_bottom_widgets(self, frame):
-        self.selected_video_label = ctk.CTkLabel(frame, text="No video selected", anchor="w")
+        self.selected_video_label = ctk.CTkLabel(frame, text="No video selected", anchor="w", font=(self.font, 8*self.scaling_factor))
         self.selected_video_label.pack(pady=5, padx=10)
 
         self.progress_var = tk.StringVar()
-        self.progress_label = ctk.CTkLabel(frame, text="Progress: 0%", textvariable= self.progress_var, anchor="w")
+        self.progress_label = ctk.CTkLabel(frame, text="Progress: 0%", textvariable= self.progress_var, anchor="w", font=(self.font, 8*self.scaling_factor))
         self.progress_label.pack(pady=5, padx=10)
 
     def on_canvas_configure(self, event):
@@ -150,9 +150,9 @@ class VideoProcessorView(ctk.CTk):
         self.image_container.config(scrollregion=self.image_container.bbox("all"))
 
     def configure_dropdown(self, frame, options, title="Select Option:"):
-        title = ctk.CTkLabel(frame, text=title, font=(self.font, 15))
+        title = ctk.CTkLabel(frame, text=title, font=(self.font, 8*self.scaling_factor))
         dropdown_options = ["None"] + self.parse_to_string(options)
-        dropdown = ctk.CTkOptionMenu(frame, values=dropdown_options)
+        dropdown = ctk.CTkOptionMenu(frame, values=dropdown_options, font=(self.font, 8*self.scaling_factor), dropdown_font=(self.font, 8*self.scaling_factor))
 
         return title, dropdown
     
