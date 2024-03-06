@@ -6,7 +6,7 @@ class CustomFileDialog(ctk.CTkToplevel):
     def __init__(
             self, master=None, title="Select a File", 
             start_path='.', mode='open', file_types=None, 
-            initialfile=None, on_close=None
+            initialfile=None, on_close=None, scale_factor=1.0
             ):
         super().__init__(master)
 
@@ -14,6 +14,7 @@ class CustomFileDialog(ctk.CTkToplevel):
             self.file_types = ["All Files"]
         else:
             self.file_types = file_types
+        self.scale_factor = scale_factor
         self.geometry("800x600")
         self.title(title)
         self.initialfile = initialfile
@@ -50,7 +51,12 @@ class CustomFileDialog(ctk.CTkToplevel):
         self.scrollbar = Scrollbar(self.listbox_frame)
         self.scrollbar.pack(side="right", fill="y")
         
-        self.listbox = Listbox(self.listbox_frame, yscrollcommand=self.scrollbar.set, selectmode=SINGLE)
+        self.listbox = Listbox(
+                            self.listbox_frame, 
+                            yscrollcommand=self.scrollbar.set, 
+                            selectmode=SINGLE, 
+                            font=("Roboto", int(16*self.scale_factor))
+                        )
         self.listbox.pack(side="left", fill="both", expand=True)
         self.scrollbar.config(command=self.listbox.yview)
         
@@ -140,8 +146,8 @@ class CustomFileDialog(ctk.CTkToplevel):
                 if self.selected_format != "All Files":
                     if not filename.endswith(self.file_types[0]):
                         filename += self.file_types[0]
-                        #remove spaces from the filename
                         filename = filename.replace(" ", "")
                 file_path = os.path.join(self.current_path, filename)
                 self.on_close_callback(file_path)
+
                 self.destroy()  # Close dialog after confirmation

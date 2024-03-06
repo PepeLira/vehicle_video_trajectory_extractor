@@ -64,3 +64,13 @@ class ControllerHelper:
             trajectories[vehicle_id] = data
 
         return trajectories
+    
+
+if __name__ == "__main__":
+    helper = ControllerHelper()
+    references = {(722.67, 588.0): [-33.408241, -70.550728], (1210.0, 55.33): [-33.405974, -70.551428], (157.33, 487.33): [-33.40967, -70.552333]}
+    point = [538.67, 392.0]
+
+    gps_x, gps_y = helper.transform_pixel_2_gps_cords(references, point)
+    print(gps_x, gps_y)
+    print(helper.gps_2_utm(gps_x, gps_y))
