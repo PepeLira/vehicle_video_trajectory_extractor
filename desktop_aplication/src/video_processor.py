@@ -57,6 +57,8 @@ class VideoProcessor:
         self.trajectory_filter_chain.add_filter(trajectory_extractor_filter)
 
     def clear_parameters(self):
+        self.detector.__init__()
+        self.aligner.__init__()
         self.aligner = None
         self.detector = None
         self.aligner_filter_chain.clear_filters()

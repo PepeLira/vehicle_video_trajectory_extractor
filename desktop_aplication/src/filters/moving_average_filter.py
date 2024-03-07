@@ -1,7 +1,7 @@
 from .filter_chain import Filter
 
 class MovingAverageFilter(Filter):
-    def __init__(self, window_size=3):
+    def __init__(self, window_size=5):
         if window_size <= 0:
             raise ValueError("Window size must be a positive integer")
         self.window_size = window_size
