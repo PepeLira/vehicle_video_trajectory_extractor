@@ -5,41 +5,28 @@ Este documento busca describir algunos de los elementos importantes para impleme
 
 ## Componentes Clave
 1. **DetectorStrategy (Clase Base)**: base que proporciona una interfaz común para diferentes estrategias de detección.
-2. **Ultralytics YOLO (Modelo)**: En un principio se utiliza el modelo YOLO de Ultralytics para la detección de objetos. es posible implementar clases para nuevos modelos de detección de objetos.
+2. **Modelo de detección de objetos**: En un principio se debe identificar con que modelo de detección de objetos se desea trabajar, por ejemplo YOLOv8.
+3. **Modelo de Seguimiento de Múltiples Objetos (MOT):** Se debe definir que método de seguimiento se va a sumar a los resultados de la detección para identificar y seguir vehículos de las detecciones.
 
-## Métodos y sus Descripciones
+## Implementación 
 
-### Constructor `__init__`
-- **Entrada**:
-  - `source_weights_path` (str): Ruta al archivo de pesos del modelo YOLO.
-  - `detection_threshold` (float): Umbral de `confidence` para la detección de objetos.
-
+Para implementar un extractor de trayectorias, lo más importante es que se debe implementar una clase que herede de DetectorStrategy y debe considerar los métodos descritos en el archivo `detector_strategy.py`, estos son `detect()` y `get_trajectories()`:
 ### Método `detect`
 - **Entrada**:
   - `video_path` (str): Ruta al archivo de video para el análisis.
   - `video_fps` (float): Frames por segundo del video.
-- **Procesamiento**: Utiliza el modelo YOLO para detectar objetos en el video.
+- **Procesamiento**: Utiliza el modelo seleccionado para detectar objetos en el video.
 - **Salida**:
-  - Lista de diccionarios, cada uno representando las detecciones en un frame. Cada diccionario tiene claves que son los IDs de seguimiento y valores que son otro diccionario con información de la detección. En este ultimo se incluyen `"bbox"`, `"class"`, `"score"`, `"frame"`, que corresponden a las etiquetas, índice de clases, confidence y el numero de frame en el que se encuentran respectivamente.
+  - Lista de diccionarios, cada uno representando las detecciones en un frame. Cada diccionario tiene claves que son los IDs de seguimiento y valores que son otro diccionario con información de la detección. En este ultimo se incluyen `"bbox"`, `"class"`, `"score"`, `"frame"`, que corresponden a las etiquetas, índice de clases, confidence y el numero de frame en el que se encuentran respectivamente (Especificadas más adelante en Estructura de Datos).
 
 ### Método `get_trajectories`
 - **Entrada**:
   - `detections`: Lista de detecciones como se retorna del método `detect`.
 - **Procesamiento**: Calcula las trayectorias de cada objeto detectado en el video.
 - **Salida**:
-  - Un diccionario donde cada clave es un ID de seguimiento y cada valor es otro diccionario que contiene las trayectorias `x` e `y`, la clase del objeto, los frames en los que se detectó, y los tiempos correspondientes.
+  - Un diccionario donde cada clave es un ID de seguimiento y cada valor es otro diccionario que contiene las trayectorias `x` e `y`, la clase del objeto, los frames en los que se detectó, y los tiempos correspondientes (Especificadas más adelante en Estructura de Datos).
 
-### Método `calculate_tracking_point`
-- **Entrada**:
-  - `bbox` (list): Lista que contiene las coordenadas del cuadro delimitador [x1, y1, x2, y2].
-- **Procesamiento**: Calcula el punto central del cuadro delimitador.
-- **Salida**:
-  - Tupla `(x, y)` que representa el punto central del cuadro delimitador.
-
-### Método `__str__`
-- **Salida**: Cadena que representa el tipo de detector (`"YOLOv8 Detector"`).
-
-## Estructuras de Datos y Ejemplos
+## Estructuras de Datos 
 
 ### Detecciones
 - **Formato**: Lista de diccionarios. Cada diccionario tiene claves que son los IDs de seguimiento, y valores que son diccionarios con las siguientes llaves: `"bbox"`, `"class"`, `"score"`, `"frame"`.

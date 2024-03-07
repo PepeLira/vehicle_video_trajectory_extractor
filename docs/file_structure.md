@@ -1,36 +1,27 @@
-# Definir una estructura para los archivos del proyecto
+# Descripción de los Directorios del Proyecto
 
-El repositorio del proyecto debe contar con una carpeta para continuar con la investigación de los métodos utilizados en este estudio. El primer método corresponde a un algoritmo de alineamiento de fotogramas. El segundo a un detector de vehículos y extractor de trayectorias una vez estos fueron identificados.
+El proyecto se divide en dos directorios principales: `desktop_application` y `research`.
 
-Para la investigación es necesario separar en una carpeta los datasets a trabajar para el modelo detector de objetos, este deberá apoyarse de un script que interprete el dataset junto a sus etiquetas y lo provea en el formato necesario. 
+## desktop_application
 
-La raíz también debe contar con una carpeta con la implementación de un software de escritorio que integre los dos métodos estudiados, de manera modularizada y fácilmente desacoplable. Además deberá contar con una interfaz gráfica que permita interactuar con el de manera simple e intuitiva, permitiendo seleccionar archivos y opciones de configuración. Debe seguir un flujo de dos etapas:
+En este directorio se encuentra la implementación del software de escritorio que integra los dos métodos investigados en el proyecto: el algoritmo de alineamiento de fotogramas y el detector de vehículos. El software es modular y fácilmente desacoplable, y cuenta con una interfaz gráfica intuitiva que permite seleccionar archivos y opciones de configuración.
 
-### Etapa 1:
+Las subcarpetas dentro de `src` incluyen:
 
-- Selección de Video
-- Preguntar si se desea alinear (estabilizar)
-    - Seleccionar método de alineamiento
-- Permitir seleccionar filtros a aplicar sobre las transformaciones obtenidas
-- Transparentar método a utilizar y filtros a aplicar antes de continuar
-- Aplicar alineamiento y mostrar barra de progreso
+- `alignment`: Contiene los archivos de modelado de alineamiento.
+- `controllers`: Contiene los controladores para el patrón MVC.
+- `filters`: Contiene los archivos de modelado de filtros.
+- `trajectory_extraction`: Contiene los archivos de modelado del extractor de trayectorias.
+- `views`: Contiene las vistas para el patrón MVC.
 
-### Etapa 2:
+## research
 
-- Permitir seleccionar modelo para extraer trayectorias
-- Permitir seleccionar filtros a aplicar sobre las trayectorias
-- Aplicar modelo y filtros seleccionados (mostrar barra de progreso)
+Este directorio se utiliza para investigar los métodos utilizados en el proyecto. Incluye dos subdirectorios:
 
-### Menú de opciones:
+- `video_alignment_methods`: En esta carpeta se realizan investigaciones sobre el algoritmo de alineamiento de fotogramas.
+- `object_detection_methods`: Aquí se investiga el detector de vehículos y extractor de trayectorias.
 
-- Exportar transformaciones de alineamiento (se desbloquea después de alinear)
-- Exportar las trayectorias antes de filtrar y después de filtrar (se desbloquea después de calcular trayectorias)
-
-### Interfaz:
-
-- Preferentemente debe mostrar una pre visualización del video
-- Debe permitir cambiar entre los diferentes estados del video para comparar (idealmente si pueden estar uno al lado del otro)
-
+Además, el proyecto incluye un directorio `datasets` para almacenar los conjuntos de datos necesarios para el modelo de detección de objetos, y un script que interpreta el conjunto de datos y lo proporciona en el formato necesario.
 
 ```
 📂 vehicle_video_trajectory_extractor/
@@ -56,29 +47,19 @@ La raíz también debe contar con una carpeta con la implementación de un softw
 │
 └── 📂 desktop_aplication/
     ├── 📄 README.md
-    ├── 📂 src/  # Código fuente
-    │   ├── 📂 alignment/
-    │   │   └── [archivos modelado de alineamiento]
-    │   ├── 📂 controllers/
-    │   │   └── [controllers para patron MVC]
-    │   │
-    │   ├── 📂 filters/
-    │   │   └── [archivos modelado de filtros]
-    │   │
-    │   ├── 📂 trajectory_extraction/
-    │   │   └── [archivos modelado de extractor de trayectorias]
-    │   │
-    │   ├── 📂 views/
-    │   │   └── [views para patron MVC]
-    │   │
-    │   └── [main, requirements.txt y modelo VideoProcessor.py ]
-    │
-    ├── 📂 ui/  # Archivos de interfaz de usuario
-    │   └── [archivos de diseño de interfaz, e.g., .ui, .qss]
-    │
-    ├── 📂 tests/  # Pruebas unitarias y de integración
-    │   └── [scripts de prueba]
-    │
-    └── 📂 build/  # Binarios y ejecutables
-        └── [archivos compilados y ejecutables]
-```
+    └── 📂 src/  # Código fuente
+        ├── 📂 alignment/
+        │   └── [archivos modelado de alineamiento]
+        ├── 📂 controllers/
+        │   └── [controllers para patron MVC]
+        │
+        ├── 📂 filters/
+        │   └── [archivos modelado de filtros]
+        │
+        ├── 📂 trajectory_extraction/
+        │   └── [archivos modelado de extractor de trayectorias]
+        │
+        ├── 📂 views/
+        │   └── [views para patron MVC]
+        │
+        └── [main, requirements.txt y modelo VideoProcessor.py ]
