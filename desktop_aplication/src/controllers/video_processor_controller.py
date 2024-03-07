@@ -40,6 +40,7 @@ class VideoProcessorController:
                 
                 self._ui_view.enable_save_results() # Processing Finished, enable save results buttons
             except Exception as e:
+                print(e)
                 self._ui_view.enable_save_results()
                 return
 

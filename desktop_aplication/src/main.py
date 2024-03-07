@@ -1,5 +1,5 @@
 import sys
-from alignment import OrbAligner
+from alignment import OrbAligner, SiftAligner
 from trajectory_extraction import YOLOv8ByteTrackDetector, YOLOv8SortDetector
 from video_processor import VideoProcessor
 from controllers import VideoProcessorController
@@ -10,7 +10,7 @@ def main():
     # Instantiate the aligner, trajectory extractor and filters
     aligner_filters = [MovingAverageFilter()] # You can add more filters
     trajectory_extractor_filters = [MovingAverageFilter()] # You can add more filters
-    aligners = [OrbAligner()]
+    aligners = [OrbAligner(), SiftAligner()]
     detectors = [YOLOv8ByteTrackDetector(), YOLOv8SortDetector()]
     aligner_filter_chain = FilterChain()
     trajectory_filter_chain = FilterChain()

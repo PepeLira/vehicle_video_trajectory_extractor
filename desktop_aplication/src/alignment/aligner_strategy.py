@@ -7,6 +7,14 @@ class AlignerStrategy(ABC):
             - self.affine_transformations = None list of affine transformations for each frame
         """
         raise NotImplementedError("The aligner strategy must be initialized with at least the affine_transformations attribute")
+    
+    @abstractmethod
+    def set_affine_transformations(self, input_video):
+        """ Sets the affine transformations for each frame
+            - input_video: video to extract the affine transformations from
+        """
+        raise NotImplementedError("The set_affine_transformations method must be implemented") 
+
     @abstractmethod
     def align(self, frame, frame_index, affine_transformations=None):
         """ Aligns one frame given the affine transformations for each frame
