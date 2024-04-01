@@ -17,6 +17,19 @@ Adicionalmente, contamos con el directorio `pretrained_models/` para almacenar l
 
 Para comenzar a trabajar con la aplicación de escritorio [se deben seguir los siguientes pasos disponibles en la documentación.](./desktop_aplication/README.md)
 
+## Investigación y Desarrollo
+
+La aplicación cuenta con modelos pre-entrenados disponibles en el directorio [`/pretrained_models/`](pretrained_models/), estos fueron entrenados con una combinación de nuestro dataset original de videos aéreos de tráfico ininterrumpido en perspectiva cenital, en conjunto a una selección de imágenes etiquetadas provenientes del dataset [DOTAv2](https://captain-whu.github.io/DOTA/index.html). [Es posible descargar el dataset implementado  desde el siguiente link en este enlace.](https://drive.google.com/file/d/1jzNW6sFu_DrKQISmGjWIdWuqBrhkxfTR/view?usp=sharing)
+
+A modo de ejemplo en el directorio `research/object_detection_method/`, es posible encontrar documentos Jupyter Notebook describiendo el proceso de entrenamiento y evaluación del modelo YOLOv8.
+
+## Formato Trayectorias y Transformaciones en CSV
+
+Luego de procesar un video, es posible exportar los resultados al [alinear un video](./docs/afine_transformations_format.md) y [extraer trayectorias](./docs/trajectories_format.md) en un archivo de texto `.csv` siguiendo los siguientes formatos:
+
+- [Transformaciones](./docs/afine_transformations_format.md)
+- [Trayectorias](./docs/trajectories_format.md)
+
 # Caracteristicas de la Aplicación
 
 | Categoría                     | Funcionalidades Clave                                      |
