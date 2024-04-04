@@ -8,7 +8,7 @@ Antes de comenzar, asegúrate de cumplir con los siguientes requisitos:
 
 - Python versión 3.7 o superior.
 - Un modelo preentrenado de YOLOv8 disponible en el directorio raíz `pretrained_models/`.
-- Pytorch 2.2.1 o una versión estable posterior, a la fecha de referencia 07/02/2024. ([Guía de instalación de pytorch](..\docs\torch_install_guide.md))
+- Pytorch 2.2.1 o una versión estable posterior, a la fecha de referencia 07/02/2024. ([Guía de instalación de pytorch](../docs/torch_install_guide.md))
 
 ### Espacios Virtuales (Opcional)
 

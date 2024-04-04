@@ -48,7 +48,7 @@ Luego de procesar un video, es posible exportar los resultados al [alinear un vi
 | **Investigación y Desarrollo**| - Describir Notebooks con el funcionamiento de alineadores.|
 |                               | - Describir Notebooks con el entrenamiento de modelos.     |
 |                               | - Describir Notebooks con el seguimiento de detecciones.   |
-| **Compatibilidad y Acceso**   | - Ejecución remota de notebooks IPython en Colab.          |
-|                               | - Compatibilidad con diferentes formatos de video.         |
+| **Compatibilidad y Acceso**   | - Compatibilidad con diferentes formatos de video.         |
+|                               |                                                            |
 
 ![image](https://github.com/PepeLira/vehicle_video_trajectory_extractor/assets/43451889/2ffde6b4-ed44-472d-a32a-bedfad92eb20)
